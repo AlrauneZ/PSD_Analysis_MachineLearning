@@ -1,2 +1,7 @@
-gstools==1.2.1
+numpy
+pandas
+scipy
 matplotlib
+sklearn
+xgboost
+scikit-optimize
