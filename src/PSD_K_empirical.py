@@ -18,11 +18,11 @@ DEF_settings = dict( # HydroGeoSieve parameters
         )    
 
 
-class PSD_to_K_Empirical(PSD_Analysis):
+class PSD_to_K_Empirical(PSD_Analysis.PSD_Analysis):
     
     def __init__(
           self,
-          data,
+          data = None,
            **settings_new,
           ):
 
@@ -31,11 +31,11 @@ class PSD_to_K_Empirical(PSD_Analysis):
         self.settings = copy.copy(DEF_settings)
         self.settings.update(**settings_new)
 
-        self.set_input_values()
+        if data is not None:
+            self.set_input_values()
         
     def set_input_values(self):        
 
-        self.filter_psd_data()
         self.calc_psd_diameters()
         self.calc_psd_parameters()
 
@@ -63,6 +63,28 @@ class PSD_to_K_Empirical(PSD_Analysis):
             tau = tau,
             )
 
+    def write_to_csv(self,filename):
+        
+        self.K_empirical.to_csv(filename)
+
+    def PSD2K_fullappMethods(self,**kwargs):
+
+        """
+        Calculation of hydraulic conductivity K from PSD 
+        through empirical methods being applicable to all samples: 
+            "Barr","AlyamaniSen","Shepherd","vanBaaren","Kozeny"
+        """
+        self.K_empirical = pd.DataFrame()
+
+        self.Barr(app=False,**kwargs)
+        self.AlyamaniSen(app=False,**kwargs)
+        self.Shepherd(app=False,**kwargs)
+        self.VanBaaren(app=False,**kwargs)
+        self.Kozeny(app=False,**kwargs)
+        
+        return self.K_empirical
+
+
     def PSD2K_allMethods(self,**kwargs):
 
         """
@@ -71,10 +93,6 @@ class PSD_to_K_Empirical(PSD_Analysis):
         "Terzaghi","Beyer","Sauerbreij","Krueger","KozenyCarman","Zunker",
         "Zamarin","USBR","Barr","AlyamaniSen","Chapuis","KrumbeinMonk",
         "Shepherd","vanBaaren"
-
-        from emclassification of soil type according to NEN5104 classification
-        based on calculated percentages of sand, silt and lutum 
-
         """
 
         self.Hazen(**kwargs)
@@ -101,6 +119,7 @@ class PSD_to_K_Empirical(PSD_Analysis):
     def AlyamaniSen(self,
                     phi_n_AlyamaniSen = 1.0,
                     N_AlyamaniSen= 1300.,
+                    app = True,
                     **kwargs): 
         # Alyamani and Sen (1993) 0.000124
 
@@ -111,11 +130,12 @@ class PSD_to_K_Empirical(PSD_Analysis):
         # rho*g/mu factor omitted in Devlin code
         K = N_AlyamaniSen * phi_n_AlyamaniSen * de**2 # in m/d
         CF = 100. / ( 60 * 60 * 24 ) #mm/s
-        K = CF * K
-        
+        K = CF * K      
         self.K_empirical['K_AlyamaniSen'] =  K
-        self.K_empirical['app_AlyamaniSen'] =  1
-        self.K_empirical['de_AlyamaniSen'] =  de
+
+        if app:
+            self.K_empirical['app_AlyamaniSen'] =  1
+        # self.K_empirical['de_AlyamaniSen'] =  de
         
         return K
 
@@ -124,6 +144,7 @@ class PSD_to_K_Empirical(PSD_Analysis):
              # cs2 = 1.175,# for average between angular and spherical grains; 
              # cs2 = 1.35, # for angular grains; 
              #cs2 = 1.0, # for spherical grains
+             app = True,
              **kwargs): 
         # Barr (2001) 0.0000116
 
@@ -137,16 +158,18 @@ class PSD_to_K_Empirical(PSD_Analysis):
 
         phi_n = self.por**3 / ( 1 - self.por )**2
         de = 0.1*self.d10
-        K = self.rho_g_mu * N_Barr * phi_n * ( de )**2
-       
+        K = self.rho_g_mu * N_Barr * phi_n * ( de )**2   
         self.K_empirical['K_Barr'] =  K
-        self.K_empirical['app_Barr'] =  1
-        self.K_empirical['de_Barr'] =  de
+
+        if app:
+            self.K_empirical['app_Barr'] =  1
+        # self.K_empirical['de_Barr'] =  de
 
         return K
 
     def Beyer(self,
               phi_n_Beyer = 1,
+              app = True,
               **kwargs):
         
         # Beyer (1964) 0.0000543
@@ -155,18 +178,19 @@ class PSD_to_K_Empirical(PSD_Analysis):
         de = 0.1*self.d10 # convert mm to cm
     
         K = self.rho_g_mu * N * phi_n_Beyer * ( de )**2
+        self.K_empirical['K_Beyer'] =  K
     
         # applicability
-        cond = (de > 0.006)*(de < 0.06)*(self.uniformity > 1)*(self.uniformity < 20 )
-
-        self.K_empirical['K_Beyer'] =  K
-        self.K_empirical['app_Beyer'] =  np.where(cond,1,0)
-        self.K_empirical['de_Beyer'] =  de
+        if app:
+            cond = (de > 0.006)*(de < 0.06)*(self.uniformity > 1)*(self.uniformity < 20 )
+            self.K_empirical['app_Beyer'] =  np.where(cond,1,0)
+        # self.K_empirical['de_Beyer'] =  de
 
         return K
 
     def Chapuis(self,
                 N_Chapuis = 1,
+                app = True,
                 **kwargs): 
 
         # Chapuis (2004) 0.00000154
@@ -181,19 +205,20 @@ class PSD_to_K_Empirical(PSD_Analysis):
         
         # rho*g/mu factor omitted in Devlin code, deviates from paper
         K = N_Chapuis* phi_n * de**2
+        self.K_empirical['K_Chapuis'] =  K
 
         # applicability
-        cond = (self.por > 0.3)*(self.por < 0.7)*(self.d10 > 0.1)*(de < 2)*(self.uniformity > 2)*(self.uniformity < 12)*(self.d10/self.psd_properties['d5'] < 1.4)
-
-        self.K_empirical['K_Chapuis'] =  K
-        self.K_empirical['app_Chapuis'] =  np.where(cond,1,0)
-        self.K_empirical['de_Chapuis'] =  de
+        if app:
+            cond = (self.por > 0.3)*(self.por < 0.7)*(self.d10 > 0.1)*(de < 2)*(self.uniformity > 2)*(self.uniformity < 12)*(self.d10/self.psd_properties['d5'] < 1.4)
+            self.K_empirical['app_Chapuis'] =  np.where(cond,1,0)
+        # self.K_empirical['de_Chapuis'] =  de
 
         return K
 
 
     def Hazen(self,
               N_Hazen = 6e-4,
+              app = True,
               **kwargs):
         #  Hazen (1892) = d10^2 (mm)
 
@@ -206,35 +231,40 @@ class PSD_to_K_Empirical(PSD_Analysis):
         phi_n = ( 1 + 10 * ( self.por - 0.26) )
         de = 0.1*self.d10                       # convert from mm to cm
     
-        K = self.rho_g_mu * N_Hazen * phi_n * de**2
-    
-        # applicability
-        cond =  (de > 0.01)*(de < 0.3)*(self.uniformity < 5)
-
+        K = self.rho_g_mu * N_Hazen * phi_n * de**2  
         self.K_empirical['K_Hazen'] =  K
-        self.K_empirical['app_Hazen'] =  np.where(cond,1,0)
-        self.K_empirical['de_Hazen'] =  de
+
+        # applicability
+        if app:        
+            cond =  (de > 0.01)*(de < 0.3)*(self.uniformity < 5)
+            self.K_empirical['app_Hazen'] =  np.where(cond,1,0)
+        # self.K_empirical['de_Hazen'] =  de
 
         return K
 
     def Hazen_simplified(self,
                          N_Hazensimple = 100,
                          phi_n_Hazensimple = 1,
+                         app = True,
                          **kwargs):
         # Hazen simplified (in Freeze & Cherry 1979)   
         
         de = 0.1*self.d10 # convert mm to cm   
         K = N_Hazensimple * phi_n_Hazensimple * de**2
     
-        # applicability 'uniformly graded sand, n = 0.375 (?), T=10 grC
-        cond = (de > 0.01)*(de < 0.3)*(self.uniformity < 5 )
-
         self.K_empirical['K_Hazen_simplified'] =  K
-        self.K_empirical['app_Hazen_simplified'] =  np.where(cond,1,0)
-        self.K_empirical['de_Hazen_simplified'] =  de
+
+        # applicability 'uniformly graded sand, n = 0.375 (?), T=10 grC
+        if app:
+            cond = (de > 0.01)*(de < 0.3)*(self.uniformity < 5 )
+            self.K_empirical['app_Hazen_simplified'] =  np.where(cond,1,0)
+        # self.K_empirical['de_Hazen_simplified'] =  de
+
+        return K
 
     def Kozeny(self,
                N_Ko = 553000,
+               app = True,
                **kwargs):
         ##Kozeny
 
@@ -249,13 +279,16 @@ class PSD_to_K_Empirical(PSD_Analysis):
         # K = CF*K
     
         self.K_empirical['K_Kozeny'] =  K
-        self.K_empirical['app_Kozeny'] =  1
-        self.K_empirical['de_Kozeny'] =  de
+
+        if app:
+            self.K_empirical['app_Kozeny'] =  1
+        # self.K_empirical['de_Kozeny'] =  de
 
         return K
 
     def KozenyCarman(self,
                      N_KoCa = 8.3e-3,
+                     app = True,
                      **kwargs):
         # Kozeny-Carman (1953) 0.0000835 (Kozeny) or 0.00161 (geometric)
         
@@ -282,18 +315,19 @@ class PSD_to_K_Empirical(PSD_Analysis):
         # print(de)
         
         K = self.rho_g_mu * N_KoCa * phi_n * de**2 # de convert mm to cm
-    
-        # applicability coarse sand
-        cond = ( self.d50 > 0.5)*(self.d50 < 2)*(self.uniformity > 2 )
-
         self.K_empirical['K_KozenyCarman'] =  K
-        self.K_empirical['app_KozenyCarman'] =  np.where(cond,1,0)
-        self.K_empirical['de_KozenyCarman'] =  de
+   
+        # applicability coarse sand
+        if app:
+            cond = ( self.d50 > 0.5)*(self.d50 < 2)*(self.uniformity > 2 )
+            self.K_empirical['app_KozenyCarman'] =  np.where(cond,1,0)
+        # self.K_empirical['de_KozenyCarman'] =  de
 
         return K
 
     def Krueger(self,
                 N_Krueger = 4.35e-4,
+                app = True,
                 **kwargs):
         # Krüger (1919)
 
@@ -309,18 +343,19 @@ class PSD_to_K_Empirical(PSD_Analysis):
         # de = 0.1*de_Krueger
     
         K = self.rho_g_mu * N_Krueger * phi_n * (de)**2 
-    
-        # applicability medium sand
-        cond = (self.d50 > 0.25)*(self.d50 < 0.50)*(self.uniformity > 5)
-
         self.K_empirical['K_Krueger'] =  K
-        self.K_empirical['app_Krueger'] =  np.where(cond,1,0)
-        self.K_empirical['de_Krueger'] =  de
+   
+        # applicability medium sand
+        if app:
+            cond = (self.d50 > 0.25)*(self.d50 < 0.50)*(self.uniformity > 5)
+            self.K_empirical['app_Krueger'] =  np.where(cond,1,0)
+        # self.K_empirical['de_Krueger'] =  de
 
         return K
 
     def KrumbeinMonk(self,
                      N_KrumbeinMonk = 760,
+                     app = True,
                      **kwargs):
         # Krumbein and Monk 0.00109
     
@@ -338,19 +373,21 @@ class PSD_to_K_Empirical(PSD_Analysis):
         K = self.rho_g_mu * N_KrumbeinMonk * phi_n * de**2
         # K = K * self.settings['darcy2m2'] * 10000 # darcy to cm^2 so K in cm/s
         K = K * 0.000000009869233 # darcy to cm^2 so K in cm/s
+        self.K_empirical['K_KrumbeinMonk'] =  K
 
         # applicability
-        #cond = (63 < self.d50)*(self.d50 < 2000)
-        cond = (0.063 < self.d50)*(self.d50 < 2)
-
-        self.K_empirical['K_KrumbeinMonk'] =  K
-        self.K_empirical['app_KrumbeinMonk'] =  np.where(cond,1,0)
-        # self.K_empirical['app_KrumbeinMonk'] =  np.where((0.063 < self.d50)*(self.d50 < 2),1,0)
-        self.K_empirical['de_KrumbeinMonk'] =  de
+        if app:
+            #cond = (63 < self.d50)*(self.d50 < 2000)
+            cond = (0.063 < self.d50)*(self.d50 < 2)
+            self.K_empirical['app_KrumbeinMonk'] =  np.where(cond,1,0)
+            # self.K_empirical['app_KrumbeinMonk'] =  np.where((0.063 < self.d50)*(self.d50 < 2),1,0)
+        # self.K_empirical['de_KrumbeinMonk'] =  de
      
         return K
 
-    def Sauerbreij(self,**kwargs):
+    def Sauerbreij(self,
+                   app = True,
+                   **kwargs):
         # k Sauerbreij 0.000383
     
         # N in Devlin code 0.00375, in equations 3.75e-5 > factor 100 difference
@@ -358,19 +395,21 @@ class PSD_to_K_Empirical(PSD_Analysis):
         phi_n = self.por**3 / ( ( 1 - self.por )**2 )
         de = 0.1*self.psd_properties['d17'] # convert mm to cm
         K = self.rho_g_mu * N * phi_n * ( de )**2 
+        self.K_empirical['K_Sauerbreij'] =  K
     
         # applicability sand and sandy clay
-        cond = (de < 0.005 )
-        # cond = (self.psd_properties['d17'] < 0.05 )
-        self.K_empirical['K_Sauerbreij'] =  K
-        self.K_empirical['app_Sauerbreij'] =  np.where(cond,1,0)
-        self.K_empirical['de_Sauerbreij'] =  de
+        if app:
+            cond = (de < 0.005 )
+            # cond = (self.psd_properties['d17'] < 0.05 )
+            self.K_empirical['app_Sauerbreij'] =  np.where(cond,1,0)
+        # self.K_empirical['de_Sauerbreij'] =  de
 
         return K
 
     def Shepherd(self,
                  phi_n = 1,
                  sand_type = 'channel',
+                 app = True,
                  **kwargs):
 
         # Shepherd (1989) 0.00277
@@ -392,19 +431,20 @@ class PSD_to_K_Empirical(PSD_Analysis):
         # K = self.rho_g_mu * N * phi_n * de**2 # m/d
         K = N * phi_n * de**2 # m/d
         K = (100 / ( 60 * 60 * 24 ) ) * K # cm/s
-        
-        # applicability
-        cond =  (de > 0.0063)*(de < 2)
-        # cond = (6.3 < de)*(de < 2000)
-        
         self.K_empirical['K_Shepherd'] =  K
-        self.K_empirical['app_Shepherd'] = np.where( cond,1,0)
-        self.K_empirical['de_Shepherd'] =  de
+       
+        # applicability      
+        if app:
+            cond =  (de > 0.0063)*(de < 2)
+            # cond = (6.3 < de)*(de < 2000)
+            self.K_empirical['app_Shepherd'] = np.where( cond,1,0)
+        # self.K_empirical['de_Shepherd'] =  de
         
         return K
 
     def Slichter(self,
                  N_Slichter = 1e-2,
+                 app = True,
                  **kwargs):
     
         # Slichter (1892)
@@ -412,18 +452,19 @@ class PSD_to_K_Empirical(PSD_Analysis):
         phi_n = self.por**3.287
         de = 0.1*self.d10 # convert mm to cm    
         K = self.rho_g_mu * N_Slichter * phi_n * (de)**2
+        self.K_empirical['K_Slichter'] =  K
     
         # applicability
-        cond = (de > 0.01)*(de < 0.5 )
-
-        self.K_empirical['K_Slichter'] =  K
-        self.K_empirical['app_Slichterd'] =  np.where(cond,1,0)
-        self.K_empirical['de_Slichter'] =  de
+        if app:
+            cond = (de > 0.01)*(de < 0.5 )
+            self.K_empirical['app_Slichterd'] =  np.where(cond,1,0)
+        # self.K_empirical['de_Slichter'] =  de
 
         return K
 
     def Terzaghi(self,
                  Ngrains = 'average',
+                 app = True,
                  **kwargs):
     
         # Terzaghi (1925) 0.0000161
@@ -438,36 +479,38 @@ class PSD_to_K_Empirical(PSD_Analysis):
         de = 0.1*self.d10 # convert mm to cm
     
         K = self.rho_g_mu * N * phi_n * ( de )**2
+        self.K_empirical['K_Terzaghi'] =  K
     
         # applicality sandy soil, coarse sand
-        cond = (self.d50 > 0.5)*(self.uniformity > 2)
-
-        self.K_empirical['K_Terzaghi'] =  K
-        self.K_empirical['app_Terzaghi'] =  np.where(cond,1,0)
-        self.K_empirical['de_Terzaghi'] =  de
+        if app:
+            cond = (self.d50 > 0.5)*(self.uniformity > 2)
+            self.K_empirical['app_Terzaghi'] =  np.where(cond,1,0)
+        # self.K_empirical['de_Terzaghi'] =  de
 
         return K
 
     def USBR(self, 
              N_USBR = 4.8e-4 *  10**0.3, 
              phi_n = 1,
+             app = True,
              **kwargs):
 
         # USBR (Bialas 1966)
         de = ( 0.1*self.psd_properties['d20'] )**1.15    
         K = self.rho_g_mu * N_USBR * phi_n * ( de )**2
+        self.K_empirical['K_USBR'] =  K
        
         # applicability
-        cond = (self.d50 > 0.25)*(self.d50 < 5)*(self.uniformity < 5 )
-
-        self.K_empirical['K_USBR'] =  K
-        self.K_empirical['app_USBR'] =  np.where(cond,1,0)
-        self.K_empirical['de_USBR'] =  de
+        if app:
+            cond = (self.d50 > 0.25)*(self.d50 < 5)*(self.uniformity < 5 )
+            self.K_empirical['app_USBR'] =  np.where(cond,1,0)
+        # self.K_empirical['de_USBR'] =  de
 
         return K
 
     def VanBaaren(self,
                   m = 1.5,
+                  app = True,
                   **kwargs):
         # van Baaren (in mD, grain sizes in mu)
 
@@ -486,17 +529,18 @@ class PSD_to_K_Empirical(PSD_Analysis):
         K = 100 * ( k / 1000 ) * self.settings['darcy2m2'] * self.rho_g_mu # in cm/s
         # van Baaren reduction factor for clay
         # f_vb = ( 1 - (1000 * d16 ) / n )**(m + 3.64)
-
-        de = 0 #0.1*self.d10
-
         self.K_empirical['K_VanBaaren'] =  K
-        self.K_empirical['app_VanBaaren'] =  1
-        self.K_empirical['de_VanBaaren'] =  de
+
+        if app:
+            self.K_empirical['app_VanBaaren'] =  1
+        # de = 0 #0.1*self.d10
+        # self.K_empirical['de_VanBaaren'] =  de
              
         return K
 
     def Zamarin(self,
                 N_Zamarin = 8.65e-3,
+                app = True,
                 **kwargs):
 
         # Zamarin (1928)
@@ -519,18 +563,19 @@ class PSD_to_K_Empirical(PSD_Analysis):
         # de = 0.1/inv_de
 
         K = self.rho_g_mu * N_Zamarin * phi_n * ( de )**2 # de convert mm to cm
+        self.K_empirical['K_Zamarin'] =  K
     
         # applicability large grained sand
-        cond = ( self.d50 > 0.4)*(self.sieve_diam[0] > 0.00025 )
-
-        self.K_empirical['K_Zamarin'] =  K
-        self.K_empirical['app_Zamarin'] =  np.where(cond,1,0)
-        self.K_empirical['de_Zamarin'] =  de
+        if app:
+            cond = ( self.d50 > 0.4)*(self.sieve_diam[0] > 0.00025 )
+            self.K_empirical['app_Zamarin'] =  np.where(cond,1,0)
+        # self.K_empirical['de_Zamarin'] =  de
 
         return K
 
     def Zunker(self,
                N_Zunker = 0.00155,
+               app = True,
                **kwargs):
 
         """
@@ -558,15 +603,14 @@ class PSD_to_K_Empirical(PSD_Analysis):
         # if ( self.sieve_diam[1] < 0.0025 ):
         #     inv_de += 3. / 2. * ( self.psd[1] - self.psd[2] ) / 100 / 0.0025
         # de = 0.1/inv_de
-
     
-        K = self.rho_g_mu * N_Zunker * phi_n * ( de )**2 # de convert mm to cm
-    
-        # applicability
-        cond = ( min(self.sieve_diam) > 0.0025 )
-
+        K = self.rho_g_mu * N_Zunker * phi_n * ( de )**2 # de convert mm to cm  
         self.K_empirical['K_Zunker'] =  K
-        self.K_empirical['app_Zunker'] =  np.where(cond,1,0)
-        self.K_empirical['de_Zunker'] =  de
+
+        # applicability
+        if app:
+            cond = ( min(self.sieve_diam) > 0.0025 )
+            self.K_empirical['app_Zunker'] =  np.where(cond,1,0)
+        # self.K_empirical['de_Zunker'] =  de
        
         return K

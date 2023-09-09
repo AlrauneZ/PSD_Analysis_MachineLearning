@@ -39,7 +39,8 @@ file_psd_props = "../data/PSD_properties.csv"
 data = pd.read_excel(file_psd_data)
 sieve_diam = [.00001,0.0001,0.0002,0.0005,.001,.002,.004,.008,.016,.025,.035,.05,.063,.075,.088,.105,.125,.150,.177,.21,.25,.3,.354,.42,.5,.6,.707,.85,1.,1.190,1.41,1.68,2]
 ### column names in excel file for relevant information:   
-name_K = 'tbl_Doorlatendheid_Procedures_M_D60/D10'  # hydraulic conductivity measurements
+# name_K = 'tbl_Doorlatendheid_Procedures_M_D60/D10'  # hydraulic conductivity measurements
+name_K = 'K (m/d 10C)'
 name_Kquality = 'Kwaliteit_monster_upto2019'         # quality check of K measurement
 name_Kquality_update = 'Eindoordeel_from2020onwards'
 
@@ -87,7 +88,7 @@ if data_analysis:
     
     psd_props.to_csv(file_psd_props)   
     
-    data_AI['soil_class'] = psd_props.soil_class
+    # data_AI['soil_class'] = psd_props.soil_class
     data_AI.to_csv(file_AI_data)
 
     psd_props.describe()

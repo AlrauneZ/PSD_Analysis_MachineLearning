@@ -9,7 +9,6 @@ import numpy as np
 import pandas as pd
 import copy
 
-
 DEF_settings = dict(
         sieve_diam = [.00001,0.0001,0.0002,0.0005,.001,.002,.004,.008,.016,.025,.035,.05,.063,.075,.088,.105,.125,.150,.177,.21,.25,.3,.354,.42,.5,.6,.707,.85,1.,1.190,1.41,1.68,2], # in mm
         )    
@@ -127,6 +126,8 @@ class PSD_Analysis():
         sieve_classes = self.data.columns[[x.startswith("F") for x in self.data.columns]]
         self.psd = pd.DataFrame(self.data, columns=sieve_classes)#.values
         self.sieve_diam = np.array(self.settings['sieve_diam'])
+        if len(self.sieve_diam)-1 != len(sieve_classes.values):
+            print("WARNING: number of sieve classes does not match to pre-specified list of sieve diameters.")
 
     def calc_psd_diameters(self,
                            diams = [5,10,16,17,20,25,50,60,75,84,90,95],
@@ -337,12 +338,15 @@ class PSD_Analysis():
         #     sand = "uiterst grof"
 
         self.psd_properties['soil_class'] = df.values   
+        self.data['soil_class'] = df.values   
+        
         # self.psd_properties['sand_median_class'] = sand.values   
         return df
 
     def sub_sample_soil_type(self,
                              soil_type = 'sand',
                              inplace = False,
+                             filter_props = True,
                              verbose = True,
                              ):
 
@@ -360,16 +364,20 @@ class PSD_Analysis():
         else:
             print("WARNING: soil_type not in the list. \nSelect from: 'sand', 'clay', 'silt'.")
 
-        filter_soil_type = self.psd_properties.soil_class.isin(soil_classes)
+        # filter_soil_type = self.psd_properties.soil_class.isin(soil_classes)
+        filter_soil_type = self.data.soil_class.isin(soil_classes)
         self.data_filtered = self.data.loc[filter_soil_type]
         if verbose:        
             print("Input data filtered to soil type: {}".format(self.soil_type))
+            print("Number of samples in sub-set: {}".format(len(self.data_filtered)))
 
-        self.psd_properties_filtered   = self.psd_properties.loc[filter_soil_type] 
+        if filter_props:
+            self.psd_properties_filtered   = self.psd_properties.loc[filter_soil_type] 
         
         if inplace:
             self.data = self.data_filtered
-            self.psd_properties = self.psd_properties_filtered
+            if filter_props:
+                self.psd_properties = self.psd_properties_filtered
             
         return self.data_filtered
 
