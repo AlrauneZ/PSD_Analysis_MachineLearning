@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Sep  5 21:16:51 2023
+Maschine Learning application to estimate hydraulic conductivity K from 
+Particle size distribution data 
+Training against K from permeameter observations using TopIntegraal data base
+provided by TNO
 
-@author: zech0001
+@author: A. Zech
 """
 import numpy as np
 import scipy
@@ -79,7 +82,7 @@ class PSD_2K_ML(PSD_Analysis):
 
 
         if filename:
-            self.read_data(filename)
+            self.read_data(filename) # read in data function given in superior class PSD_Analysis
             #self.data = pd.read_excel(filename)
             # self.data.rename(columns = {'K (m/d 10C)':'Kf'}, inplace = True)
        
@@ -186,8 +189,8 @@ class PSD_2K_ML(PSD_Analysis):
         if self.algorithm == 'DT':
             self.AI = DecisionTreeRegressor(random_state = 42)
             self.best_params = dict(
-                            max_depth = 5, 
-                            min_samples_split= 30
+                            max_depth = 30, 
+                            min_samples_split= 2,
                             )
             self.search_space_GS = {
                     "max_depth" : max_depth,
@@ -210,12 +213,11 @@ class PSD_2K_ML(PSD_Analysis):
             self.best_params = dict(
                             max_depth = 25, 
                             min_samples_split= 2, 
-                            n_estimators = 200)
+                            n_estimators = 300)
             self.search_space_GS = {
                 "max_depth" : max_depth,
                 "min_samples_split" : min_samples_split, 
                 "n_estimators" : n_estimators,
-                # "bootstrap" : [True]
                 }
 
             self.search_space_scopt = [
@@ -226,9 +228,9 @@ class PSD_2K_ML(PSD_Analysis):
 
         elif self.algorithm == 'XG':
             self.AI = XGBRegressor()
-            self.best_params = dict(n_estimators = 60, 
-                                    max_depth = 5, 
-                                    learning_rate = 0.1)
+            self.best_params = dict(n_estimators = 300, 
+                                    max_depth = 4, 
+                                    learning_rate = 0.05)
 
             self.search_space_GS = {
                             'max_depth': max_depth,
@@ -244,11 +246,8 @@ class PSD_2K_ML(PSD_Analysis):
 
         elif self.algorithm == 'LR':
             self.AI = Ridge(random_state = 42,solver = 'svd')
-
-            if self.soil_type == 'silt':
-                self.best_params = dict(alpha = 0.1) 
-            else: #"all"
-                self.best_params = dict(alpha =  1)
+            ### RESULT Hyperparameter testing: value of alpha is arbitrary for alpha<1
+            self.best_params = dict(alpha =  1)
 
             self.search_space_GS = {
                 "alpha" : [0.0001, 0.001, 0.01, 0.1, 1, 10, 100], 
@@ -262,44 +261,32 @@ class PSD_2K_ML(PSD_Analysis):
         elif self.algorithm == 'SVR':
             self.AI = SVR(kernel = 'rbf')
             self.scale_feature=True
-            self.best_params = dict(C = 10, 
-                          gamma = 0.1, 
-                          )
+            self.best_params = dict(C = 100, gamma = 0.1)
 
-            self.search_space_GS = {'C': [0.1,1, 10, 100], 
-                             'gamma': [0.001,0.01,0.1,1.],
+            self.search_space_GS = {'C': [1, 10, 100,1000], 
+                             'gamma': [0.001,0.01,0.1,1.,10],
                              }
 
             self.search_space_scopt = [
-                      skopt.space.Real(0.1, 100,prior = 'log-uniform', name='C'),
-                      skopt.space.Real(0.001, 1,prior = 'log-uniform', name='gamma'),
+                      skopt.space.Real(1, 1000,prior = 'log-uniform', name='C'),
+                      skopt.space.Real(0.001, 10,prior = 'log-uniform', name='gamma'),
                       ]
 
         elif self.algorithm == 'ANN':
             self.AI = MLPRegressor(random_state = 42, 
                                    solver = 'adam',
                                    max_iter=500,
-                                   alpha = 0.0001
+                                   alpha = 0.0001,
                                    ) #solver='lbfgs')
             self.scale_feature=True
             
-            if self.soil_type == 'clay':
-                self.best_params = dict(activation = 'relu', 
-                                    # alpha = 0.001, 
-                                    hidden_layer_sizes = (100, 50, 30),
-                                    learning_rate = 'adaptive', 
-                                    # learning_rate = 'constant', 
-                                    )
-            else:
-                self.best_params = dict(activation = 'relu',  
-                                  # alpha = 0.0001, 
-                                  hidden_layer_sizes = (120, 80, 40),
-                                  learning_rate = 'constant', 
-                                  )                      
+            self.best_params = dict(activation = 'relu',  
+                              hidden_layer_sizes = (150,100,50),
+                              learning_rate = 'constant', 
+                              )                      
             self.search_space_GS = {
                 'hidden_layer_sizes': [(150,100,50), (120,80,40), (100,50,30)],
                 'activation': ['tanh', 'relu','logistic'],
-                # 'alpha': [0.0001,0.001,0.05, 0.1,1.],
                 'learning_rate': ['constant','adaptive'],
             }
 
@@ -307,44 +294,7 @@ class PSD_2K_ML(PSD_Analysis):
                       skopt.space.Integer(50, 150, name='hidden_layer_sizes'),
                       skopt.space.Categorical(categories = ['constant','adaptive'], name = 'learning_rate'),
                       skopt.space.Categorical(categories = ['tanh', 'relu','logistic'],name="activation")
-                      ]
-    
-            # self.AI = MLPRegressor(random_state = 42, solver = 'sgd') #solver='lbfgs')
-            # self.scale_feature=True
-            
-            # if self.soil_type == 'clay':
-            #     self.best_params = dict(activation = 'relu', 
-            #                         alpha = 0.001, 
-            #                         hidden_layer_sizes = (100, 50, 30),
-            #                         learning_rate = 'adaptive', 
-            #                         # learning_rate = 'constant', 
-            #                         max_iter = 3000, 
-            #                         )
-            # else:
-            #     self.best_params = dict(activation = 'relu',  
-            #                       alpha = 0.0001, 
-            #                       hidden_layer_sizes = (120, 80, 40),
-            #                       learning_rate = 'constant', 
-            #                       max_iter = 1000, 
-            #                       )                      
-            
-            # self.search_space_GS = {
-            #     'hidden_layer_sizes': [(150,100,50), (120,80,40), (100,50,30)],
-            #     'max_iter': [500, 1000, 1500, 3000],
-            #     'activation': ['tanh', 'relu','logistic'],
-            #     'alpha': [0.0001,0.001,0.05, 0.1,1.],
-            #     'learning_rate': ['constant','adaptive'],
-            # }
-
-
-             # self.search_space_scopt =  [
-             #           skopt.space.Integer(500, 3000, name='max_iter'),
-             #           skopt.space.Integer(50, 150, name='hidden_layer_sizes'),
-             #           skopt.space.Real(0.0001, 1, prior = 'log-uniform', name='alpha'),
-             #           # skopt.space.Categorical(categories = ['constant','adaptive'], name = 'learning_rate'),
-             #           # skopt.space.Categorical(categories = ['tanh', 'relu','logistic'],name="activation")
-             #           ]
-     
+                      ]     
            
         else:
             print("Warning: specified algorithm '{}' not implemented.".format(self.algorithm))
@@ -357,7 +307,6 @@ class PSD_2K_ML(PSD_Analysis):
             # print(self.best_params)
 
         
-#       self.settings=copy.copy(DEF_settings)
     def set_feature_variables(self,
                               # scale_feature = False,
                               ):
@@ -539,7 +488,6 @@ class PSD_2K_ML(PSD_Analysis):
 
     def prediction(self,
                    x_pred = 'full_set',
-                   y_obs = 'full_set',
                    verbose = False,
                    ):
        
@@ -552,16 +500,9 @@ class PSD_2K_ML(PSD_Analysis):
         elif x_pred == 'testing_set':
             self.x_pred = self.x_test
             self.y_obs = self.y_test
-        elif isinstance(x_pred,np.array()) and isinstance(y_obs,np.array()):
-            if len(x_pred)!=len(y_obs):
-                raise ValueError('Input and target (observation) variable have to have same length!')
-            else:
-                self.x_pred = x_pred
-                self.y_obs = y_obs
         else:
             print("Warning: variables x_pred and y_obs not specified correctly")
 
-        # self.AI.set_params(**self.best_params)
         self.y_pred = self.AI.predict(self.x_pred)
 
         self.mse = mean_squared_error(self.y_obs, self.y_pred)
@@ -576,33 +517,46 @@ class PSD_2K_ML(PSD_Analysis):
             print("R2 is  {:.3f}".format(self.r2))
 
         return self.y_pred,self.mse, self.rmse, self.r2
-        
-    # def performance_measures(self,
-    #                          y_obs = 'full_set',
-    #                          verbose = False):
 
-    #     if y_obs == 'full_set':
-    #         self.y_obs = self.target_var
-    #     elif y_obs == 'training_set':
-    #         self.y_obs = self.y_train
-    #     elif y_obs == 'testing_set':
-    #         self.y_obs = self.y_test
-    #     else:
-    #         if len(self.x_pred)!=len(y_obs):
-    #             raise ValueError('Input and target (observation) variable have to have same length!')
-           
-    #     self.mse = mean_squared_error(self.y_obs, self.y_pred)
-    #     self.rmse = np.sqrt(self.mse)
-    #     self.r2 = r2_score(self.y_obs, self.y_pred)
+    def application(self, 
+                    x_app, 
+                    y_app = False, 
+                    verbose = False,
+                   ):
+       
+        # if not isinstance(x_pred,np.array()) and not isinstance(y_obs,np.array()):
+        #     raise ValueError('Input and target (observation) not given as arrays!')
+        # if len(x_pred)!=len(y_obs):
+        #     raise ValueError('Input and target (observation) variable do not have the same length!')
+        # else:
+        #     self.y_app = y_app
 
-    #     if verbose:
-    #         print('\nPerformance measures for {}'.format(y_obs))
-    #         print("--------------------------------------")
-    #         print("MSE is {:.3f}".format(self.mse))
-    #         print("RMSE is {:.3f}".format(self.rmse))
-    #         print("R2 is  {:.3f}".format(self.r2))
+        y_app_pred = self.AI.predict(x_app)
+        if isinstance(y_app,np.ndarray):
+            if len(x_app)!=len(y_app):
+                raise ValueError('Input and target (observation) variable do not have the same length!')
+            mse = mean_squared_error(y_app, self.y_app_pred)
+            rmse = np.sqrt(self.mse)
+            r2 = r2_score(y_app, y_app_pred)
 
-    #     return self.mse, self.rmse, self.r2
+            if verbose:
+                print('\nPerformance measures')
+                print("--------------------------------------")
+                print("MSE is {:.3f}".format(self.mse))
+                print("RMSE is {:.3f}".format(self.rmse))
+                print('\nPerformance measures:')
+                print("--------------------------------------")
+                print("MSE is {:.3f}".format(mse))
+                print("RMSE is {:.3f}".format(rmse))
+                print("R2 is  {:.3f}".format(r2))
+
+                return (y_app_pred, mse, rmse, r2)
+
+            else:
+                return y_app_pred
+
+        else:
+            return y_app_pred
 
     def quantiles_4_plot(self,
                   bins=10,

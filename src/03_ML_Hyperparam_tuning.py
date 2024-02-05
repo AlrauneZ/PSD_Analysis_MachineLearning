@@ -16,11 +16,21 @@ warnings.filterwarnings("ignore")
 plt.close('all')
 
 
-algorithm = 'XG' #'ANN' #'SVR' #'DT' #'LR' #'RF'  #
+algorithm = 'SVR' #'DT' #'LR' #'XG' #'ANN' #'RF'  #
 soil_type = 'all'
 verbose = True #False #
 
-test = 1
+hp_GS = True
+hp_skopt = True
+
+# hp_GS = True
+# hp_skopt = False
+
+# hp_GS = False
+# hp_skopt = True
+
+
+test = 2
 
 print('\n################################################')
 print('   Hyper parameter tuning for algorithm {}'.format(algorithm))
@@ -70,48 +80,50 @@ Analysis.data_split()#verbose = verbose)
 ###   Hyperparameter testing 
 ### ===========================================================================
 
-### perform hyperparameter testings (includes specification of AI algorithm)
-Analysis.hyperparameter_GS(verbose = verbose,
-                           file_results = "../results/HP_tuning/Hyper_GS_{}_{}_"+str(test)+".csv"
-                           )
+if hp_GS:
+    ### perform hyperparameter testings (includes specification of AI algorithm)
+    Analysis.hyperparameter_GS(verbose = verbose,
+                               file_results = "../results/HP_tuning/Hyper_GS_{}_{}_"+str(test)+".csv"
+                               )
+    
+    Analysis.training()
+    Analysis.prediction(verbose = verbose)
+    Analysis.prediction(
+        x_pred = 'training_set',
+        verbose = verbose)
+    Analysis.prediction(
+        x_pred = 'testing_set',
+        verbose = verbose)
 
-Analysis.training()
-Analysis.prediction(verbose = verbose)
-Analysis.prediction(
-    x_pred = 'training_set',
-    verbose = verbose)
-Analysis.prediction(
-    x_pred = 'testing_set',
-    verbose = verbose)
-
-results = Analysis.hyperparameter_skopt(verbose = verbose,
-                                        file_results = "../results/HP_tuning/Hyper_Skopt_{}_{}_"+str(test)+".csv"
-                                        )
-
-
-fig2 = skopt.plots.plot_objective(results)
-if algorithm == 'LR':
-    fig2.tick_params(axis="both",which="major",labelsize=textsize-1) 
-    fig2.set_xlabel(fig2.get_xlabel(),fontsize = textsize)
-    fig2.set_ylabel(fig2.get_ylabel(),fontsize = textsize)
-else:
-    for i in range(fig2.shape[0]):
-        for j in range(fig2.shape[1]):
-            fig2[i,j].tick_params(axis="both",which="major",labelsize=textsize-1) 
-            fig2[i,j].set_xlabel(fig2[i,j].get_xlabel(),fontsize = textsize)
-            fig2[i,j].set_ylabel(fig2[i,j].get_ylabel(),fontsize = textsize)
-# plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.3, hspace=0.3)
-plt.savefig('../results/HP_tuning/HP_scopt_obj_{}_{}_{}.png'.format(Analysis.soil_type,Analysis.algorithm,test),dpi = 300, bbox_inches = 'tight')
-
-### ===========================================================================
-###   Algorithm Performance with optimal Parameters
-### ===========================================================================
-
-Analysis.training()
-Analysis.prediction(verbose = verbose)
-Analysis.prediction(
-    x_pred = 'training_set',
-    verbose = verbose)
-Analysis.prediction(
-    x_pred = 'testing_set',
-    verbose = verbose)
+if hp_skopt:
+    results = Analysis.hyperparameter_skopt(verbose = verbose,
+                                            file_results = "../results/HP_tuning/Hyper_Skopt_{}_{}_"+str(test)+".csv"
+                                            )
+    
+    
+    fig2 = skopt.plots.plot_objective(results)
+    if algorithm == 'LR':
+        fig2.tick_params(axis="both",which="major",labelsize=textsize-1) 
+        fig2.set_xlabel(fig2.get_xlabel(),fontsize = textsize)
+        fig2.set_ylabel(fig2.get_ylabel(),fontsize = textsize)
+    else:
+        for i in range(fig2.shape[0]):
+            for j in range(fig2.shape[1]):
+                fig2[i,j].tick_params(axis="both",which="major",labelsize=textsize-1) 
+                fig2[i,j].set_xlabel(fig2[i,j].get_xlabel(),fontsize = textsize)
+                fig2[i,j].set_ylabel(fig2[i,j].get_ylabel(),fontsize = textsize)
+    # plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.3, hspace=0.3)
+    plt.savefig('../results/HP_tuning/HP_scopt_obj_{}_{}_{}.png'.format(Analysis.soil_type,Analysis.algorithm,test),dpi = 300, bbox_inches = 'tight')
+    
+    ### ===========================================================================
+    ###   Algorithm Performance with optimal Parameters
+    ### ===========================================================================
+    
+    Analysis.training()
+    Analysis.prediction(verbose = verbose)
+    Analysis.prediction(
+        x_pred = 'training_set',
+        verbose = verbose)
+    Analysis.prediction(
+        x_pred = 'testing_set',
+        verbose = verbose)

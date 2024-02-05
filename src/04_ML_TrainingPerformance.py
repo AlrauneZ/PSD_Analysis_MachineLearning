@@ -10,12 +10,12 @@ Created on Fri Sep  8 11:24:52 2023
 # import pandas as pd
 import PSD_2K_ML
 
-algorithm = 'LR' #'RF' #'ANN' #'DT' #'SVR' #'LR' #
+algorithm ='SVR' # 'LR' #'RF' #'ANN' #'LR' #'DT' #
 soil_type = 'all'
 verbose = True #False #
 
 print('\n#################################')
-print('   Hyper parameter tuning')
+print('  Training Performance Evaluation')
 print('#################################\n')
 
 ### ===========================================================================
@@ -34,6 +34,7 @@ Analysis = PSD_2K_ML.PSD_2K_ML()
 #                           filter_props = False,
 #                           verbose = verbose
 #                           )
+
 data_PSD = Analysis.prepare_data(filename=file_AI_data,
                       soil_type = soil_type, 
                       remove_outlier = False,
@@ -75,3 +76,4 @@ Analysis.prediction(
 Analysis.prediction(
     x_pred = 'testing_set',
     verbose = verbose)
+test = Analysis.psd

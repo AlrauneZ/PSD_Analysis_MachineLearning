@@ -5,8 +5,10 @@
 """
 
 import numpy as np
-import pandas as pd
+#import pandas as pd
 import PSD_Analysis
+
+write_to_file = True
 
 print('\n#################################')
 print('   Input data Analysis')
@@ -18,8 +20,6 @@ print('   Input data Analysis')
 
 file_AI_data = "../data/AI_data.csv"
 file_psd_props = "../data/PSD_properties.csv"
-
-
 file_data_stats = "../results/Data_{}_stats.csv"
      
 ### initiate analysis
@@ -46,7 +46,9 @@ stats2save = ['d10','d50','perc_lutum','perc_silt','perc_sand']
 stats_data = Analysis.psd_properties[stats2save].copy()
 stats_data['logK'] = np.log10(Analysis.data.Kf)
 stats = stats_data.describe()
-stats.to_csv(file_data_stats.format('all'))
+
+if write_to_file:
+    stats.to_csv(file_data_stats.format('all'))
 print(stats)
 
 for soil_type in ['sand','silt','clay']:
@@ -57,6 +59,7 @@ for soil_type in ['sand','silt','clay']:
     stats_data['logK'] = np.log10(Analysis.data_filtered.Kf)
     # test = np.log10(Analysis.data.Kf.values)
     stats = stats_data.describe()
-    stats.to_csv(file_data_stats.format(soil_type))
+    if write_to_file:
+        stats.to_csv(file_data_stats.format(soil_type))
     print(stats)
 
