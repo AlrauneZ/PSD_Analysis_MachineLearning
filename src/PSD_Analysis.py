@@ -13,68 +13,6 @@ DEF_settings = dict(
         sieve_diam = [.00001,0.0001,0.0002,0.0005,.001,.002,.004,.008,.016,.025,.035,.05,.063,.075,.088,.105,.125,.150,.177,.21,.25,.3,.354,.42,.5,.6,.707,.85,1.,1.190,1.41,1.68,2], # in mm
         )    
 
-
-# def read_data(filename,
-#               filter_quality = True,
-#               condense = True,
-#               psd_only = False,
-#               update = True,
-#               # verbose = False,                  
-#               ): 
-
-#     """
-#     Function to read in psd data from data file used in Roy Lin and Valerie de Rijks Thesis:
-#     Condensed and modified data from TNO
-    
-#     """
-
-#     if update:
-#         name_quality = 'Kwaliteit_monster_upto2019'
-#         name_K = 'tbl_Doorlatendheid_Procedures_M_D60/D10'
-#     else:
-#         name_quality = 'Kwaliteit_monster'
-#         name_K = 'K (m/d 10C)'
-        
-    
-#     data = pd.read_excel(filename)
-
-#     if filter_quality:
-#         if update:
-#             filter_old = (data[name_quality] == 'ok')
-#             filter_q1 = (data['Eindoordeel_from2020onwards'] == 'Niet beoordeeld')
-#             filter_q2 = (data['Eindoordeel_from2020onwards'] == 'OK') \
-#                         + (data['Eindoordeel_from2020onwards'] == 'OK(G)') \
-#                         + (data['Eindoordeel_from2020onwards'] == 'OK(M)') \
-#                         + (data['Eindoordeel_from2020onwards'] == 'OK(Z)')
-#             filter_q = filter_old*filter_q1 + filter_q2
-#             # print(np.sum(filter_old))
-#             # print(np.sum(filter_q1))
-#             # print(np.sum(filter_old*filter_q1))
-#             # print(np.sum(filter_q2))
-#             # print(np.sum(filter_q))
-#         else:
-#             filter_q = (data[name_quality] == 'ok')
-#         data = data[filter_q]
-#     ### filter psd - NAN values
-
-#     if condense:
-#         sieve_classes = data.columns[[x.startswith("F") for x in data.columns]]
-#         data_condensed = pd.DataFrame(data, columns=sieve_classes)#.values
-#         data_condensed['Kf'] = data[name_K]
-#     else:
-#         data_condensed = data
-
-#     if psd_only:
-#         sieve_classes = data.columns[[x.startswith("F") for x in data.columns]]
-#         data_condensed = pd.DataFrame(data, columns=sieve_classes)#.values
-    
-#     ### filter psd - NAN values
-#     data_condensed.dropna(inplace = True)
-#     data_condensed.reset_index(drop=True,inplace=True)
-
-#     return data_condensed
-   
-
 class PSD_Analysis():
     
     def __init__(
@@ -83,13 +21,14 @@ class PSD_Analysis():
            **settings_new,
           ):
 
-        self.data = data
-
         self.settings = copy.copy(DEF_settings)
         self.settings.update(**settings_new)
-        
-        # self.filter_psd_data()
 
+
+        self.data = data
+        if self.data is not None:
+            self.filter_psd_data()
+        
     def read_data(self,
                   filename,
                   **settings,               
@@ -104,30 +43,26 @@ class PSD_Analysis():
         self.data = pd.read_csv(filename)
 
         ### Identify PSD data and check number of sieve classes
-        sieve_classes = self.data.columns[[x.startswith("F") for x in self.data.columns]]
-        self.sieve_diam = np.array(self.settings['sieve_diam'])
-        if len(self.sieve_diam)-1 != len(sieve_classes.values):
-            print("WARNING: number of sieve classes does not match to pre-specified list of sieve diameters.")
-        self.psd = pd.DataFrame(self.data, columns=sieve_classes)#.values
+        self.filter_psd_data()
 
         return self.data
 
-    def set_psd(self,
-                psd,
+    def set_data(self,
+                data,
                 sieve_diam,
                 ):
         
-        self.data = psd
-        self.psd = psd
-        self.sieve_diam = sieve_diam
+        self.data = data
+        self.settings['sieve_diam'] = sieve_diam
+        self.filter_psd_data()
 
     def filter_psd_data(self):
 
         sieve_classes = self.data.columns[[x.startswith("F") for x in self.data.columns]]
-        self.psd = pd.DataFrame(self.data, columns=sieve_classes)#.values
         self.sieve_diam = np.array(self.settings['sieve_diam'])
         if len(self.sieve_diam)-1 != len(sieve_classes.values):
             print("WARNING: number of sieve classes does not match to pre-specified list of sieve diameters.")
+        self.psd = pd.DataFrame(self.data, columns=sieve_classes)
 
     def calc_psd_diameters(self,
                            diams = [5,10,16,17,20,25,50,60,75,84,90,95],
@@ -250,7 +185,8 @@ class PSD_Analysis():
         return self.psd_properties
 
 
-    def calc_NEN5104_classification(self):
+    def calc_NEN5104_classification(self,
+                                    write_ext_data = False):
 
         """
         Performing classification of soil_type according to NEN5104 classification
@@ -289,59 +225,30 @@ class PSD_Analysis():
         df.iloc[filter_2*filter_3] =  "lz3"
         df.iloc[filter_2*filter_3*( perc_sand < 15 )] =  "lz1"
 
-        # if ( 50 <= perc_lutum):
-        #     soil = "ks1"
-        # elif (35 <= perc_lutum < 50):
-        #     soil = "ks2"
-        # elif (25 <= perc_lutum < 35):
-        #     soil = "ks3"
-        # elif ( perc_lutum < 25 and 50 <= perc_sand):
-        #     if ( 17.5 <= perc_lutum < 25):
-        #         soil = "kz1"
-        #     elif ( 12 <= perc_lutum < 17.5):
-        #         soil = "kz2"
-        #     elif ( 8 <= perc_lutum <12):
-        #         soil = "kz3"
-        #     elif ( 5 <= perc_lutum < 8 and 82.5 <= perc_sand ):
-        #         soil = "zk"
-        #     elif ( perc_lutum < 8  and perc_sand < 67.5 ):
-        #         soil = "zs4"
-        #     elif ( perc_lutum < 8 and 67.5 <= perc_sand < 82.5 ):
-        #         soil = "zs3"
-        #     elif ( perc_lutum < 5 and 82.5 <= perc_sand < 92 ):
-        #         soil = "zs2"
-        #     elif ( perc_lutum < 5 and 92 < perc_sand):
-        #         soil = "zs1"
-        # # sand < 50 and lutum < 25 and silt > 42
-        # elif ( perc_lutum < 25 and perc_sand < 50 ):
-        #     # Ks4, Lz1 or Lz3. Division line between Ks4 and Lz1/Lz3 extends from lutum=8, silt=42, sand=50 to lutum=25, silt=75, sand=0
-        #     # line between Ks4 and Lz1/Lz3 has silt = 1.9367 * lutum + 26.4520
-        #     if ( 1.9367 * perc_lutum + 26.4520 <= perc_silt):
-        #         if ( perc_sand < 15 ):
-        #             soil = "lz1"
-        #         else:
-        #             soil = "lz3"
-        #     else:
-        #         soil = "ks4"
-    
-        # if ( dz50 < .105 ):
-        #     sand = "uiterst fijn"
-        # if ( dz50 >= .105 and dz50 < .15 ):
-        #     sand = "zeer fijn"
-        # if ( dz50 >= .15 and dz50 < .21 ):
-        #     sand = "matig fijn"
-        # if ( dz50 >= .21 and dz50 < .3 ):
-        #     sand = "matig grof"
-        # if ( dz50 >= .3 and dz50 < .42 ):
-        #     sand = "zeer grof"
-        # if ( dz50 >= .42 and dz50 < 2 ):
-        #     sand = "uiterst grof"
-
         self.psd_properties['soil_class'] = df.values   
         self.data['soil_class'] = df.values   
-        
+
+        if write_ext_data:
+            self.extended_data_to_csv(file_data_ext = write_ext_data)    
+
         # self.psd_properties['sand_median_class'] = sand.values   
         return df
+
+    def extended_data_to_csv(self,
+                              file_data_ext = ".data_props.csv"
+                              ):
+       #TODO: add here check on file path 
+       self.data.to_csv(file_data_ext,index = False)   
+       print("\nPDS data file with extended properties saved to file: ",file_data_ext)
+
+
+    def psd_properties_to_csv(self,
+                              file_psd_props = ".PSD_props.csv"
+                              ):
+        
+       #TODO: add here check on file path 
+       self.psd_properties.to_csv(file_psd_props,index = False)   
+       print("\nPDS Properties saved to file: ",file_psd_props)
 
     def sub_sample_soil_type(self,
                              soil_type = 'sand',
@@ -378,9 +285,19 @@ class PSD_Analysis():
             self.data = self.data_filtered
             if filter_props:
                 self.psd_properties = self.psd_properties_filtered
-            
+            self.psd = self.psd.loc[filter_soil_type]
+            #self.filter_psd_data()
         return self.data_filtered
 
+    def stats_data(self, 
+                   verbose = True):
+
+        stats = self.data["logK"].describe()
+
+        if verbose:        
+            print("Statistics of log-conductivity:")
+            print(stats)
+        return stats
 
 
 

@@ -7,7 +7,7 @@ import numpy as np
 # import scipy
 import copy
 import pandas as pd
-import PSD_Analysis
+from PSD_Analysis import PSD_Analysis
 
 DEF_settings = dict( # HydroGeoSieve parameters
         T = 20, # deg C
@@ -17,7 +17,7 @@ DEF_settings = dict( # HydroGeoSieve parameters
         sieve_diam = [.00001,0.0001,0.0002,0.0005,.001,.002,.004,.008,.016,.025,.035,.05,.063,.075,.088,.105,.125,.150,.177,.21,.25,.3,.354,.42,.5,.6,.707,.85,1.,1.190,1.41,1.68,2], # in mm
         )    
 
-class PSD_to_K_Empirical(PSD_Analysis.PSD_Analysis):
+class PSD_to_K_Empirical(PSD_Analysis):
     
     def __init__(
           self,

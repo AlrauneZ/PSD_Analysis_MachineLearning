@@ -15,7 +15,7 @@ plt.close('all')
 algs = ['DT','RF']#,['XG','SVR','ANN']#,'LR' #'DT',#'RF',
 
 # algorithm = 'LR' #'RF' #'ANN' #'DT' #'SVR' #'LR' #
-soil_type = 'all'
+soil_type = 'full' # 'silt'#'sand' #'clay' # 
 verbose = True #False #
 
 print('\n#################################')
@@ -25,7 +25,9 @@ print('#################################\n')
 ### ===========================================================================
 ### Set file pathes and names // Plot specifications
 ### ===========================================================================
-file_AI_data = "../data/AI_data.csv"
+file_application_data = "../data/data_PSD_Kf.csv"
+# file_application_data = "../data/AI_data.csv"
+
 #file_psd_props = "../data/PSD_properties.csv"
 # file_Kemp_all = "../results/Kemp_all.csv"
 
@@ -36,7 +38,7 @@ textsize = 10
 ### ===========================================================================
 
 Analysis = PSD_2K_ML.PSD_2K_ML()
-data_PSD = Analysis.prepare_data(filename=file_AI_data,
+data_PSD = Analysis.prepare_data(filename=file_application_data,
                       soil_type = soil_type, 
                       remove_outlier = False,
                       verbose = verbose,      
@@ -84,8 +86,8 @@ for algorithm in algs:
                 fig1[i,j].set_ylabel(fig1[i,j].get_ylabel(),fontsize = textsize)
     # plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.3, hspace=0.3)
     
-    plt.savefig('../results/HP_tuning/HP_scopt_eval_{}_{}.png'.format(Analysis.soil_type,Analysis.algorithm),dpi=300, bbox_inches = 'tight')
-    plt.savefig('../results/HP_tuning/HP_scopt_eval_{}_{}.pdf'.format(Analysis.soil_type,Analysis.algorithm),bbox_inches = 'tight')
+    plt.savefig('../results/HP_tuning/HP_skopt_eval_{}_{}.png'.format(Analysis.soil_type,Analysis.algorithm),dpi=300, bbox_inches = 'tight')
+    plt.savefig('../results/HP_tuning/HP_skopt_eval_{}_{}.pdf'.format(Analysis.soil_type,Analysis.algorithm),bbox_inches = 'tight')
     
     # # =============================================================================
     
@@ -102,8 +104,8 @@ for algorithm in algs:
                 fig2[i,j].set_xlabel(fig2[i,j].get_xlabel(),fontsize = textsize)
                 fig2[i,j].set_ylabel(fig2[i,j].get_ylabel(),fontsize = textsize)
     # plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.3, hspace=0.3)
-    plt.savefig('../results/HP_tuning/HP_scopt_obj_{}_{}.png'.format(Analysis.soil_type,Analysis.algorithm),dpi = 300, bbox_inches = 'tight')
-    plt.savefig('../results/HP_tuning/HP_scopt_obj_{}_{}.pdf'.format(Analysis.soil_type,Analysis.algorithm), bbox_inches = 'tight')
+    plt.savefig('../results/HP_tuning/HP_skopt_obj_{}_{}.png'.format(Analysis.soil_type,Analysis.algorithm),dpi = 300, bbox_inches = 'tight')
+    plt.savefig('../results/HP_tuning/HP_skopt_obj_{}_{}.pdf'.format(Analysis.soil_type,Analysis.algorithm), bbox_inches = 'tight')
     
  
     # np.savetxt('../results/HP_tuning/HP_scopt_{}_{}.txt'.format(Analysis.soil_type,Analysis.algorithm),results['x'])

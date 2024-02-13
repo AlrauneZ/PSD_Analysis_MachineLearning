@@ -13,9 +13,9 @@ import PSD_2K_ML
 verbose = True #False #
 save_to_file = True
 
-soil_type = 'all'
+soil_type = 'full'
 algorithms = ['DT','RF','XG','LR','SVR','ANN']
-sets = ['full_set','training_set','testing_set']
+sets = ['training_set','testing_set','full_set']
 
 print('\n#################################')
 print('  Training Performance Evaluation')
