@@ -10,28 +10,49 @@ Created on Wed Oct 11 12:32:43 2023
 import pandas as pd
 import PSD_2K_ML
 
-verbose = True #False #
-save_to_file = True
 
-soil_type = 'full'
+soil_type = 'sand' # 'full' #'silt' #'por'# 'clay' #
+feature = 'PSD' #'dX_por' #'dX' #
+target = 'Kf' #'por' # #
+
 algorithms = ['DT','RF','XG','LR','SVR','ANN']
 sets = ['training_set','testing_set','full_set']
 
+verbose = True #False #
+save_to_file = True
+
 print('\n#################################')
 print('  Training Performance Evaluation')
+print('   Feature variables: {}'.format(feature))
+print('   Target variable: {}'.format(target))
 print('#################################\n')
 
 ### ===========================================================================
 ### Set file pathes and names
 ### ===========================================================================
 
-file_AI_data = "../data/AI_data.csv"
-file_AI_performance_r2 = "../results/Performance_r2_{}.csv".format(soil_type)
-file_AI_performance_mse = "../results/Performance_mse_{}.csv".format(soil_type)
+#file_AI_data = "../data/AI_data.csv"
+# file_AI_performance_r2 = "../results/Performance_r2_{}.csv".format(soil_type)
+# file_AI_performance_mse = "../results/Performance_mse_{}.csv".format(soil_type)
 
-Analysis = PSD_2K_ML.PSD_2K_ML()
+file_AI_performance_r2 = "../results/Performance_{}_{}_{}_r2.csv".format(feature,target,soil_type)
+file_AI_performance_mse = "../results/Performance_{}_{}_{}_mse.csv".format(feature,target,soil_type)
 
-data_PSD = Analysis.prepare_data(filename=file_AI_data,
+if soil_type in ['full','all','silt','sand','clay']:
+    file_application_data = "../data/data_PSD_Kf_props.csv" ### Top-All
+if soil_type == 'por':
+    file_application_data = "../data/data_PSD_por_Kf.csv" ###Top-Por
+
+### ===========================================================================
+### Initialize Analysis
+### ===========================================================================
+
+Analysis = PSD_2K_ML.PSD_2K_ML(
+                        feature = feature,
+                        target = target,                            
+                        )
+
+data_PSD = Analysis.prepare_data(filename=file_application_data,
                       soil_type = soil_type, 
                       remove_outlier = False,
                       verbose = verbose,      

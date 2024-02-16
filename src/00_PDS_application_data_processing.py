@@ -33,14 +33,8 @@ name_lithoclass = 'Lithoklasse_gemeten'
 ##################################################################
 data = pd.read_csv(file_psd_data)   # read in data as panda data frame
 
-
 ### --- Quality Check ---###
 ############################
-# name_Kquality = 'Kwaliteit_monster'         # quality check of K measurement
-### filter for K-data to be used (fulfilling quality check)
-# filter_q = data[name_Kquality].isin(['OK','OK(G)','OK(M)','OK(N)','OK(V)','OK(Z)','OK(G)(M)','OK(V)(G)'])
-# print("Number of samples after quality check:", len(filter_q.values))
-# data = data[filter_q]
 
 ### --- extract PSD from data-frame --- ###
 ###########################################

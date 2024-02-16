@@ -13,7 +13,9 @@ import matplotlib.pyplot as plt
 plt.close('all')
 
 algorithm ='RF' #'ANN' #'LR' #'DT' #'SVR' # 'LR' #
-soil_type = 'all'
+soil_type = 'all' #'por' 'silt' #'full'#'sand' #  'clay' #
+feature = 'PSD' #'dX_por' #'dX' #
+target = 'Kf' #'por' # #
 verbose = True #False #
 
 print('\n#############################################')
@@ -26,7 +28,13 @@ print('###############################################\n')
 file_AI_data = "../data/AI_data.csv"
 file_application_data = "../data/application_data.csv"
 
-Analysis = PSD_2K_ML.PSD_2K_ML()
+#Analysis = PSD_2K_ML.PSD_2K_ML()
+Analysis = PSD_2K_ML.PSD_2K_ML(
+                        algorithm = algorithm,
+                        feature = feature,
+                        target = target,                            
+                        )
+
 data_PSD = Analysis.prepare_data(filename=file_AI_data,
                       soil_type = soil_type, 
                       remove_outlier = False,
@@ -38,8 +46,7 @@ data_PSD = Analysis.prepare_data(filename=file_AI_data,
 ### ===========================================================================
 
 ### specify AI algorithm
-Analysis.set_algorithm(algorithm = algorithm,
-                       verbose = verbose)
+Analysis.set_algorithm(verbose = verbose)
 ### specifying feature (input) and target (output) variables
 Analysis.set_feature_variables()
 Analysis.set_target_variables()

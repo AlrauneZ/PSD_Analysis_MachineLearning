@@ -13,6 +13,7 @@ import scipy
 import copy
 import pandas as pd
 from PSD_Analysis import PSD_Analysis
+from data_dictionaries import DIC_best_params
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split, GridSearchCV #RepeatedKFold, cross_val_score,
@@ -29,62 +30,53 @@ import skopt
 
 DEF_settings = dict(
         sieve_diam = [.00001,0.0001,0.0002,0.0005,.001,.002,.004,.008,.016,.025,.035,.05,.063,.075,.088,.105,.125,.150,.177,.21,.25,.3,.354,.42,.5,.6,.707,.85,1.,1.190,1.41,1.68,2], # in mm
-        )    
+        )   
 
 class PSD_2K_ML(PSD_Analysis):
     
     def __init__(
           self,
           algorithm = 'LR',
+          feature = 'PSD',
+          target = 'Kf',
           **settings_new,
           ):
 
+        """
+            algorithm - type of ML algorithm, options:
+                - LR = linear regression with Ridge
+                - DT = decision tree
+                - RF = random forest
+                - XG = XGBoost
+                - SVR = support vector regression
+                - ANN = Artifical neural networks
+                
+            feature - type of feature variable, options:
+                - PSD (default)
+                - dX 
+                - dX_por
+        
+            target - type of target variable, options:
+                - Kf (default)
+                - por
+        """
+
         self.algorithm = algorithm
+        self.feature = feature
+        self.target = target
         self.settings = copy.copy(DEF_settings)
         self.settings.update(**settings_new)
 
-    # def read_data(self,
-    #               filename,
-    #               **settings,               
-    #               ): 
-
-    #     """
-    #     Function to read in data from condensed data file containing PSD, 
-    #     K-values and soil_classes
-    #     """    
-    #     self.settings.update(**settings)
-
-    #     self.data = pd.read_csv(filename)
-
-    #     ### Identify PSD data and check number of sieve classes
-    #     sieve_classes = self.data.columns[[x.startswith("F") for x in self.data.columns]]
-    #     self.sieve_diam = np.array(self.settings['sieve_diam'])
-    #     if len(self.sieve_diam)-1 != len(sieve_classes.values):
-    #         print("WARNING: number of sieve classes does not match to pre-specified list of sieve diameters.")
-    #     self.psd = pd.DataFrame(self.data, columns=sieve_classes)#.values
-
-    #     return self.data
-
-    # def set_psd(self,
-    #             psd,
-    #             sieve_diam,
-    #             ):
-        
-    #     self.psd = psd
-    #     self.sieve_diam = sieve_diam
-
     def prepare_data(self,
                      filename = False,
-                     soil_type = 'all', 
+                     soil_type = 'full', 
                      remove_outlier = False,
                      verbose = False,                  
                   ): 
 
-
         if filename:
+            # function inheritated from PDS_Analysis
             self.read_data(filename) # read in data function given in superior class PSD_Analysis
-            #self.data = pd.read_excel(filename)
-            # self.data.rename(columns = {'K (m/d 10C)':'Kf'}, inplace = True)
        
         self.data = self.data.assign(logK=np.log10(self.data["Kf"].values))       
         
@@ -92,13 +84,18 @@ class PSD_2K_ML(PSD_Analysis):
             self.remove_outliers(verbose = verbose)
             
         self.soil_type = soil_type            
-        if soil_type != 'all':
+        if soil_type not in ['full','all','por']:
+            # function inheritated from PDS_Analysis
             self.sub_sample_soil_type(soil_type = soil_type,
                                       inplace = True,
                                       filter_props = False,
-                                      verbose = False,
+                                      verbose = verbose,
                                       )
 
+        if self.feature in ['dX','dX_por']:
+            # self.prep_dx(verbose = verbose)
+            self.dX = self.calc_psd_diameters(diams = [10,50,60])
+            
         if verbose:        
             print('---------------------------------\n   Data Preparation \n---------------------------------')
             print("Input data of soil types: {}".format(soil_type))
@@ -114,36 +111,13 @@ class PSD_2K_ML(PSD_Analysis):
         z_scores = scipy.stats.zscore(self.data["Kf"])
         filtered_entries = (np.abs(z_scores) < z_score_limit)
         self.data = self.data[filtered_entries]
+        self.psd = self.psd[filtered_entries]
+
         if verbose:        
             print("Number of outlier removed: {}".format(len(filtered_entries)-np.sum(filtered_entries)))
             print("Number of samples: {}".format(len(self.data["Kf"].values)))
 
         return self.data
-
-    # def sub_sample_soil_type(self,
-    #                          soil_type = 'sand',
-    #                          verbose = True,
-    #                          ):
-
-    #     self.soil_type = soil_type
-    #     if self.soil_type == 'sand':
-    #         # soil_classes = ['Zs1', 'Zs2', 'Zs3', 'Zs4', 'Zk','Lz3']
-    #         soil_classes = ['Zs1', 'Zs2', 'Zs3', 'Zs4', 'Zk']
-    #     elif self.soil_type == 'clay':
-    #         soil_classes = ['Ks1', 'Ks2', 'Ks3', 'Ks4']
-    #     elif self.soil_type == 'silt':
-    #         # soil_classes = ['Lz1', 'Lz2', 'Kz1', 'Kz2', 'Kz3']
-    #         soil_classes = ['Lz1', 'Lz2','Lz3', 'Kz1', 'Kz2', 'Kz3']
-    #     else:
-    #         print("WARNING: soil_type not in the list. \nSelect from: 'sand', 'clay', 'silt'.")
-
-    #     filter_soil_type = self.data.soil_class.isin(soil_classes)
-    #     self.data = self.data.loc[filter_soil_type]
-    #     if verbose:        
-    #         print("Input data filtered to soil type: {}".format(self.soil_type))
-    #         print("Number of samples in sub-set: {}".format(len(self.data["Kf"].values)))
-        
-    #     return self.data
 
     def soil_class_specification(self,
                                  verbose = True):
@@ -161,93 +135,71 @@ class PSD_2K_ML(PSD_Analysis):
 
         return self.soil_class_names,self.soil_class_sample
 
-    def stats_data(self, 
-                   verbose = True):
-
-        stats = self.data["logK"].describe()
-
-        if verbose:        
-            print("Statistics of log-conductivity:")
-            print(stats)
-        return stats
 
     def set_algorithm(self,
                       algorithm = None,
                       verbose = False,
+                      **kwargs,
                       ):
 
         print('----------------------------------\n  Set ML algorithm --> {} \n----------------------------------'.format(algorithm))
         self.scale_feature=False
 
-        max_depth = [2, 4 , 6, 10, 20, 25, 30]
+        max_depth = [2, 3, 4 , 5, 6, 8, 10, 20, 25, 30]
         min_samples_split = [2, 3, 5, 10, 15, 20, 30] # [2, 5, 10, 20]
-        n_estimators = [20, 60, 100, 150, 200, 300]
+#        n_estimators = [20, 60, 100, 150, 200, 300]
         
         if algorithm is not None:
             self.algorithm = algorithm
 
         if self.algorithm == 'DT':
             self.AI = DecisionTreeRegressor(random_state = 42)
-            self.best_params = dict(
-                            max_depth = 30, 
-                            min_samples_split= 2,
-                            )
+                
             self.search_space_GS = {
                     "max_depth" : max_depth,
                     "min_samples_split" : min_samples_split
                     }
-#           self.search_space_GS = {
-#                    "max_depth" : [2,3,5,7,10,15,20,25,30],
-#                    "min_samples_split" : [2,3,5,7,10,15,20,30],
-#                   }
-            ### maybe adapt!
 
             self.search_space_scopt = [
                       skopt.space.Integer(max_depth[0], max_depth[-1], name='max_depth'),
                       skopt.space.Integer(min_samples_split[0],min_samples_split[-1], name='min_samples_split'),
                       ]
-  
-            
+             
         elif self.algorithm == 'RF':
-            self.AI = RandomForestRegressor(random_state = 42, bootstrap = True)
-            self.best_params = dict(
-                            max_depth = 25, 
-                            min_samples_split= 2, 
-                            n_estimators = 300)
+            self.AI = RandomForestRegressor(random_state = 42, 
+                                            bootstrap = True,
+                                            n_estimators = 300,
+                                            )
+
             self.search_space_GS = {
                 "max_depth" : max_depth,
                 "min_samples_split" : min_samples_split, 
-                "n_estimators" : n_estimators,
+#                "n_estimators" : n_estimators,
                 }
 
             self.search_space_scopt = [
                       skopt.space.Integer(max_depth[0], max_depth[-1], name='max_depth'),
                       skopt.space.Integer(min_samples_split[0],min_samples_split[-1], name='min_samples_split'),
-                      skopt.space.Integer(n_estimators[0],n_estimators[-1], name='n_estimators'),
+ #                     skopt.space.Integer(n_estimators[0],n_estimators[-1], name='n_estimators'),
                       ]
 
         elif self.algorithm == 'XG':
-            self.AI = XGBRegressor()
-            self.best_params = dict(n_estimators = 300, 
-                                    max_depth = 4, 
-                                    learning_rate = 0.05)
+            self.AI = XGBRegressor()#n_estimators = 200)
 
             self.search_space_GS = {
                             'max_depth': max_depth,
-                            'n_estimators': n_estimators, 
+                            # 'n_estimators': n_estimators, 
                             'learning_rate' : [0.01, 0.05, 0.1, 0.2, 0.4, 0.7, 1.0],
                             }
 
             self.search_space_scopt = [
                       skopt.space.Integer(max_depth[0], max_depth[-1], name='max_depth'),
                       skopt.space.Real(0.01, 1.0,prior = 'log-uniform', name='learning_rate'),
-                      skopt.space.Integer(n_estimators[0],n_estimators[-1],name = 'n_estimators')
+                      # skopt.space.Integer(n_estimators[0],n_estimators[-1],name = 'n_estimators')
                       ]
 
         elif self.algorithm == 'LR':
             self.AI = Ridge(random_state = 42,solver = 'svd')
-            ### RESULT Hyperparameter testing: value of alpha is arbitrary for alpha<1
-            self.best_params = dict(alpha =  1)
 
             self.search_space_GS = {
                 "alpha" : [0.0001, 0.001, 0.01, 0.1, 1, 10, 100], 
@@ -261,7 +213,6 @@ class PSD_2K_ML(PSD_Analysis):
         elif self.algorithm == 'SVR':
             self.AI = SVR(kernel = 'rbf')
             self.scale_feature=True
-            self.best_params = dict(C = 100, gamma = 0.1)
 
             self.search_space_GS = {'C': [1, 10, 100,1000], 
                              'gamma': [0.001,0.01,0.1,1.,10],
@@ -277,22 +228,20 @@ class PSD_2K_ML(PSD_Analysis):
                                    solver = 'adam',
                                    max_iter=500,
                                    alpha = 0.0001,
+                                   learning_rate = 'adaptive',
                                    ) #solver='lbfgs')
             self.scale_feature=True
             
-            self.best_params = dict(activation = 'relu',  
-                              hidden_layer_sizes = (150,100,50),
-                              learning_rate = 'constant', 
-                              )                      
             self.search_space_GS = {
+                # 'hidden_layer_sizes': [(50),(60),(80),(100),(120),(150)],
                 'hidden_layer_sizes': [(150,100,50), (120,80,40), (100,50,30)],
                 'activation': ['tanh', 'relu','logistic'],
-                'learning_rate': ['constant','adaptive'],
+                # 'learning_rate': ['constant','adaptive'],
             }
 
             self.search_space_scopt =  [
                       skopt.space.Integer(50, 150, name='hidden_layer_sizes'),
-                      skopt.space.Categorical(categories = ['constant','adaptive'], name = 'learning_rate'),
+                      # skopt.space.Categorical(categories = ['constant','adaptive'], name = 'learning_rate'),
                       skopt.space.Categorical(categories = ['tanh', 'relu','logistic'],name="activation")
                       ]     
            
@@ -300,41 +249,78 @@ class PSD_2K_ML(PSD_Analysis):
             print("Warning: specified algorithm '{}' not implemented.".format(self.algorithm))
             print("Select from : ANN, DT, RF, XG, LR or SVR")
 
+        # self.best_params = DIC_best_params[self.algorithm][self.soil_type]
+        if self.feature == 'PSD' and self.target =='por':
+            self.best_params = DIC_best_params['PSD_por'][self.algorithm][self.soil_type]   
+        else:
+            self.best_params = DIC_best_params[self.feature][self.algorithm][self.soil_type]   
+        
         self.AI.set_params(**self.best_params)
         if verbose:
             print("Selected ML algorithm/regressor and parameter settings:")
             print(self.AI)
             # print(self.best_params)
-
         
     def set_feature_variables(self,
-                              # scale_feature = False,
+                              feature = None,
+                              scale_feature = None,
+                              **kwargs,
                               ):
 
-        print('----------------------------------\n  Set Feature Variables --> PSD \n----------------------------------')
+        """
+            feature - type of feature variable, options:
+                - PSD (default)
+                - dX 
+                - dX_por
+        
+        """
+        if feature is not None: #update feature variable setting
+            self.feature=feature
+
+        print('----------------------------------\n  Set Feature Variables --> {} \n----------------------------------'.format(self.feature))
+
+        if scale_feature is not None:
+            self.scale_feature=scale_feature
 
         # sieve_classes = self.data.columns[[x.startswith("F") for x in self.data.columns]]
         # feature_var = pd.DataFrame(self.data, columns=sieve_classes).values
-        self.feature_var = self.psd
+
+        if self.feature == 'PSD':
+            self.feature_var = self.psd
+        elif self.feature == 'dX':
+            self.feature_var = self.dX
+        elif self.feature == 'dX_por':
+            self.feature_var = self.dX
+            self.feature_var['por'] = self.data['por']
+        else: 
+            raise ValueError('Choice of feature variable not implemented.')
+
         if self.scale_feature:
             self.feature_var = StandardScaler().fit_transform(self.feature_var)
         
         return self.feature_var
 
     def set_target_variables(self,
+                             target = None,
                              log_transform=True,
                              **kwargs,
                              ):
+
+        if target is not None: #update feature variable setting
+            self.target=target
         
-        print('----------------------------------\n  Set Target Variable --> (log) Kf \n----------------------------------')
+        print('----------------------------------\n  Set Target Variable --> {} \n----------------------------------'.format(self.target))
         # target_var = pd.DataFrame(self.data, columns=['K']).values
 
-        if log_transform:
-            self.target_var = self.data.logK.values
-            # self.target_var = np.log10(target_var)
-        else:
-            self.target_var = self.data.Kf.values
-            # self.target_var = target_var
+        if self.target == 'Kf':
+            if log_transform:
+                self.target_var = self.data.logK.values
+            else:
+                self.target_var = self.data.Kf.values
+        elif self.target == 'por':
+            self.target_var = self.data['por']
+        else: 
+            raise ValueError('Choice of feature variable not implemented.')
 
         return self.target_var
 
@@ -359,7 +345,7 @@ class PSD_2K_ML(PSD_Analysis):
 
 
     def hyperparameter_GS(self,
-                          file_results = "../results/Hyper_GS_{}_{}.csv",
+                          file_results = "../results/Hyper_{}_{}_GS.csv",
                           verbose = False,
                           ):
 
@@ -412,7 +398,7 @@ class PSD_2K_ML(PSD_Analysis):
 
     def hyperparameter_skopt(self,
                              # save_results = True,
-                             file_results = "../results/Hyper_Skopt_{}_{}.csv",
+                             file_results = "../results/Hyper_{}_{}_Skopt.csv",
                              verbose = False,
                               **kwargs,
                              ):        
@@ -472,7 +458,6 @@ class PSD_2K_ML(PSD_Analysis):
             
         return results
 
-
     def training(self,
                  algorithm = None,
                  **kwargs,
@@ -481,7 +466,7 @@ class PSD_2K_ML(PSD_Analysis):
         if algorithm is not None:
             self.algorithm = algorithm
             self.set_algorithm(**kwargs)
-            self.set_feature_variables()
+            self.set_feature_variables(**kwargs)
             self.set_target_variables(**kwargs)
 
         self.AI.fit(self.x_train, self.y_train)

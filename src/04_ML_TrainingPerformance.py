@@ -11,20 +11,34 @@ Created on Fri Sep  8 11:24:52 2023
 import PSD_2K_ML
 
 algorithm ='XG' # 'ANN'  #'SVR' # 'LR' #'RF' # 'DT' #####  
-soil_type = 'silt' #'sand' #'full'#  'clay' #
+soil_type = 'silt' #'full'#'sand' #  'clay' #
+feature = 'PSD' #'dX_por' #'dX' #
+target = 'Kf' #'por' # #
+
 verbose = True #False #
 
 print('\n#################################')
 print('  Training Performance Evaluation')
+print('   Algorithm {}'.format(algorithm))
+print('   Feature variables: {}'.format(feature))
+print('   Target variable: {}'.format(target))
+
 print('#################################\n')
 
 ### ===========================================================================
 ### Set file pathes and names
 ### ===========================================================================
-file_application_data = "../data/data_PSD_Kf_props.csv"
-#file_application_data = "../data/data_PSD_Kf.csv"
+if soil_type in ['full','all','silt','sand','clay']:
+    file_application_data = "../data/data_PSD_Kf_props.csv" ### Top-All
+if soil_type == 'por':
+    file_application_data = "../data/data_PSD_por_Kf.csv" ###Top-Por
 
-Analysis = PSD_2K_ML.PSD_2K_ML()
+Analysis = PSD_2K_ML.PSD_2K_ML(
+                        algorithm = algorithm,
+                        feature = feature,
+                        target = target,                            
+                        )
+
 data_PSD = Analysis.prepare_data(filename=file_application_data,
                       soil_type = soil_type, 
                       remove_outlier = False, #True , #
@@ -35,8 +49,7 @@ data_PSD = Analysis.prepare_data(filename=file_application_data,
 ### ===========================================================================
 
 ### specify AI algorithm
-Analysis.set_algorithm(algorithm = algorithm,
-                        verbose = verbose)
+Analysis.set_algorithm(verbose = verbose)
 
 ### specifying feature (input) and target (output) variables
 Analysis.set_feature_variables()

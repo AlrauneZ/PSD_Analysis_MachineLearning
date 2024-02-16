@@ -253,7 +253,7 @@ class PSD_Analysis():
     def sub_sample_soil_type(self,
                              soil_type = 'sand',
                              inplace = False,
-                             filter_props = True,
+                             filter_props = False,
                              verbose = True,
                              ):
 
