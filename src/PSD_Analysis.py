@@ -257,6 +257,13 @@ class PSD_Analysis():
                              verbose = True,
                              ):
 
+        """
+            soil_type options:
+                - sand
+                - silt
+                - clay
+        """
+
         self.soil_type = soil_type
         if self.soil_type == 'sand':
             # soil_classes = ['Zs1', 'Zs2', 'Zs3', 'Zs4', 'Zk','Lz3']
@@ -289,16 +296,56 @@ class PSD_Analysis():
             #self.filter_psd_data()
         return self.data_filtered
 
-    def stats_data(self, 
-                   verbose = True):
+    def sub_sample_por(self,
+                       inplace = False,
+                       filter_props = False,
+                       verbose = True,
+                       ):
 
-        stats = self.data["logK"].describe()
+        filter_por = self.data['porositeit'].notna()
+        self.data_filtered = self.data.loc[filter_por]
+        if verbose:        
+            print("Input data filtered to samples with measured porosity")
+            print("Number of samples in sub-set: {}".format(len(self.data_filtered)))
+
+        if filter_props:
+            self.psd_properties_filtered   = self.psd_properties.loc[filter_por] 
+        
+        if inplace:
+            self.data = self.data_filtered
+            if filter_props:
+                self.psd_properties = self.psd_properties_filtered
+            self.psd = self.psd.loc[filter_por]
+        return self.data_filtered
+
+    def stats_data(self, 
+                   PSD_stats2save = ['d10','d50','perc_lutum','perc_silt','perc_sand'],
+                   other_stats2save = [], #
+                   filter_props = False,
+                   file_data_stats = False, 
+                   verbose = True
+                   ):
+
+        if filter_props:
+            psd_properties = self.psd_properties_filtered
+            data = self.data_filtered
+        else:
+            psd_properties = self.psd_properties
+            data = self.data
+
+        stats_data = psd_properties[PSD_stats2save].copy()
+        for key in other_stats2save:
+            stats_data[key] = data[key]
+
+        stats = stats_data.describe()
 
         if verbose:        
-            print("Statistics of log-conductivity:")
+            print("Statistics of specified data set quantities:")
             print(stats)
+
+        if file_data_stats:
+            stats.to_csv(file_data_stats)
+            print("Statistics saved to file:", file_data_stats)          
+
         return stats
-
-
-
-           
+          

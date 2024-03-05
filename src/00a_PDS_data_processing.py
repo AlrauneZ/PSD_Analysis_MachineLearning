@@ -19,7 +19,7 @@ Author: A. Zech
 import pandas as pd
 
 ### optional: preliminary PSD data analysis for samples statistics and soil class specification
-data_analysis = True
+data_analysis = True #False # 
 
 # =============================================================================
 # File names for input and output data
@@ -29,7 +29,7 @@ file_psd_data = "../data/20230822_tbl_Merge_DLprocedures_KGVparameters_paperVale
 #file_psd_data = "../data/TopIntegraal_PSD_K_SoilClasses.xlsx"
 
 file_AI_data = "../data/AI_data.csv"
-file_psd_props = "../data/PSD_properties.csv"
+file_psd_props = "../data/PSD_properties_alt.csv"
 
 # =============================================================================
 # Load Data from excel file and perform filtering of samples applicable for our study
@@ -65,6 +65,7 @@ data_AI['Kf'] = data[name_K]
 ### drop samples with NAN values in sieve samples and reset index in data frame
 data_AI.dropna(inplace = True)
 data_AI.reset_index(drop=True,inplace=True)
+print(len(data_AI.index))
 data_AI.to_csv(file_AI_data)
 
 # =============================================================================
@@ -78,17 +79,12 @@ if data_analysis:
     Analysis = PSD_Analysis.PSD_Analysis(data_AI)
     
     ### perform data analysis on psd
-    Analysis.filter_psd_data()
+    # Analysis.filter_psd_data()
     Analysis.calc_psd_diameters()
     Analysis.calc_psd_soil_class()
     Analysis.calc_NEN5104_classification()
     #Analysis.calc_psd_folk()
     
     psd_props = Analysis.psd_properties
-    
     psd_props.to_csv(file_psd_props)   
-    
-    # data_AI['soil_class'] = psd_props.soil_class
-    data_AI.to_csv(file_AI_data)
-
     psd_props.describe()

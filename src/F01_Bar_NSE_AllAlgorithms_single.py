@@ -8,11 +8,10 @@ import numpy as np
 
 plt.close('all')
 
-soil_type = 'all'
+soil_type = 'topall'
 feature = 'PSD' #'dX_por' #'dX' #
 target = 'Kf' #'por' # #
 
-soil_type = 'all'
 data_set = 'testing_set' #, 'training_set','full_set']
 algorithms = ['DT','RF','XG','LR','SVR','ANN']
 
@@ -70,5 +69,5 @@ plt.title("Performance for {}".format(data_set),fontsize=textsize)
 # plt.title("$R^2$ for test data set (20%)",fontsize=textsize)
 # plt.title("$R^2$ for full data set (100%)",fontsize=textsize)
 plt.tight_layout()
-plt.savefig(fig_results+'.png',dpi=300)
+# plt.savefig(fig_results+'.png',dpi=300)
 # plt.savefig(fig_results+'.pdf')

@@ -28,9 +28,8 @@ print('##################################################\n')
 ### ===========================================================================
 ### Set file pathes and names
 ### ===========================================================================
-file_application_data = "../data/data_PSD_Kf_props.csv"
-#file_application_data = "../data/data_PSD_Kf.csv"
 
+file_data = "../data/data_PSD_Kf_por.csv"
 textsize= 10
 
 ### ===========================================================================
@@ -38,7 +37,7 @@ textsize= 10
 ### ===========================================================================
 
 Analysis = PSD_2K_ML.PSD_2K_ML()
-data_PSD = Analysis.prepare_data(filename=file_application_data,
+data_PSD = Analysis.prepare_data(filename=file_data,
                       soil_type = soil_type, 
                       remove_outlier = False,
                       verbose = verbose,      

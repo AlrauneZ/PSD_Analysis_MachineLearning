@@ -16,6 +16,7 @@ algorithm =  'XG' ##### # 'SVR'  #'LR' # 'RF'  # #'DT' #'ANN'#
 soil_type = 'clay' #'silt'# 'sand' # 'full' #
 verbose = True #False #
 
+
 test = 2
 
 print('\n################################################')
@@ -26,17 +27,14 @@ print('##################################################\n')
 ### Set file pathes and names
 ### ===========================================================================
 
-
-file_application_data = "../data/data_PSD_Kf_props.csv"
-#file_application_data = "../data/data_PSD_Kf.csv"
-#file_application_data = "../data/AI_data.csv"
+file_data = "../data/data_PSD_Kf_por.csv"
 
 ### ===========================================================================
 ### Initialize Analysis and load in data
 ### ===========================================================================
 
 Analysis = PSD_2K_ML.PSD_2K_ML()
-data_PSD = Analysis.prepare_data(filename=file_application_data,
+data_PSD = Analysis.prepare_data(filename=file_data,
                       soil_type = soil_type, 
                       remove_outlier = False,
                       verbose = verbose,      

@@ -10,8 +10,8 @@ Created on Fri Sep  8 11:24:52 2023
 # import pandas as pd
 import PSD_2K_ML
 
-algorithm ='XG' # 'ANN'  #'SVR' # 'LR' #'RF' # 'DT' #####  
-soil_type = 'silt' #'full'#'sand' #  'clay' #
+algorithm ='XG' # 'DT' #LR' # 'ANN'  # 'RF' #'SVR' # ####  
+soil_type = 'por' # 'topall'#'sand' #  'clay' #'silt' #
 feature = 'PSD' #'dX_por' #'dX' #
 target = 'Kf' #'por' # #
 
@@ -28,10 +28,8 @@ print('#################################\n')
 ### ===========================================================================
 ### Set file pathes and names
 ### ===========================================================================
-if soil_type in ['full','all','silt','sand','clay']:
-    file_application_data = "../data/data_PSD_Kf_props.csv" ### Top-All
-if soil_type == 'por':
-    file_application_data = "../data/data_PSD_por_Kf.csv" ###Top-Por
+
+file_data = "../data/data_PSD_Kf_por.csv"
 
 Analysis = PSD_2K_ML.PSD_2K_ML(
                         algorithm = algorithm,
@@ -39,7 +37,7 @@ Analysis = PSD_2K_ML.PSD_2K_ML(
                         target = target,                            
                         )
 
-data_PSD = Analysis.prepare_data(filename=file_application_data,
+data_PSD = Analysis.prepare_data(filename=file_data,
                       soil_type = soil_type, 
                       remove_outlier = False, #True , #
                       verbose = verbose,      

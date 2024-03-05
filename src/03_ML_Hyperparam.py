@@ -14,16 +14,19 @@ warnings.filterwarnings("ignore")
 plt.close('all')
 
 
-algorithm ='LR' #'ANN'  #'XG' #'SVR'  #'RF' #   ##### # # 'RF'   #
-soil_type = 'por' #'full'#'silt'#'sand' # 'clay' # 
+algorithms = ['RF'] #'ANN'  #'XG' #'SVR'  #'RF' 
+#algorithms = ['DT','RF','XG','LR','SVR','ANN']
+soil_type = 'topall' #'silt'#'sand' # 'clay' # 'por' #'clay' #
 verbose = True #False #
-feature = 'PSD' #'dX_por' #'dX' #
-target = 'por' # #'Kf' #
+feature = 'dX' #'PSD' #'dX_por' #
+target = 'Kf' #'por' # 
+
+file_data = "../data/data_PSD_Kf_por_props.csv"
+# file_data = "../data/data_PSD_Kf_por.csv"
 
 test = 0
 
-for algorithm in ['LR','DT']:
-#for algorithm in ['SVR','RF','ANN','XG']:
+for algorithm in algorithms:
     print('\n################################################')
     print('   Hyper parameter tuning for algorithm {}'.format(algorithm))
     print('   Feature variables: {}'.format(feature))
@@ -32,16 +35,7 @@ for algorithm in ['LR','DT']:
     
     ### ===========================================================================
     ### Set file pathes and names
-    ### ===========================================================================
-    
-    if soil_type in ['full','all','silt','sand','clay']:
-        file_application_data = "../data/data_PSD_Kf_props.csv" ### Top-All
-    if soil_type == 'por':
-        file_application_data = "../data/data_PSD_por_Kf.csv" ###Top-Por
-    
-    #file_application_data = "../data/data_PSD_Kf.csv"
-    #file_application_data = "../data/AI_data.csv"
-    
+    ### ===========================================================================   
     
     dir_results_HP = "../results/HP_tuning_{}_{}/".format(feature,target)
     if not os.path.exists(dir_results_HP):
@@ -60,12 +54,11 @@ for algorithm in ['LR','DT']:
                             feature = feature,
                             target = target,                            
                             )
-    data_PSD = Analysis.prepare_data(filename=file_application_data,
+    data_PSD = Analysis.prepare_data(filename=file_data,
                           soil_type = soil_type, 
                           remove_outlier = False,
                           verbose = verbose,      
                           )
-    
     ### ===========================================================================
     ### Speficy Algorithm and set target and feature variables
     ### ===========================================================================
@@ -103,8 +96,7 @@ for algorithm in ['LR','DT']:
     
     results = Analysis.hyperparameter_skopt(verbose = verbose,
                                             file_results=file_results_skopt,                
-                                            )
-    
+                                            )  
     
     textsize= 10
     fig2 = skopt.plots.plot_objective(results)

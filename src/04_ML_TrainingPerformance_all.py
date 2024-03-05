@@ -11,15 +11,15 @@ import pandas as pd
 import PSD_2K_ML
 
 
-soil_type = 'sand' # 'full' #'silt' #'por'# 'clay' #
-feature = 'PSD' #'dX_por' #'dX' #
-target = 'Kf' #'por' # #
+soil_type = 'por'# 'topall'## 'clay' #''full' #'silt' #'sand' #
+feature ='PSD' # 'dX_por' #'dX' #
+target = 'por' # #'Kf' #
 
 algorithms = ['DT','RF','XG','LR','SVR','ANN']
 sets = ['training_set','testing_set','full_set']
 
 verbose = True #False #
-save_to_file = True
+save_to_file = True #False #
 
 print('\n#################################')
 print('  Training Performance Evaluation')
@@ -31,17 +31,11 @@ print('#################################\n')
 ### Set file pathes and names
 ### ===========================================================================
 
-#file_AI_data = "../data/AI_data.csv"
-# file_AI_performance_r2 = "../results/Performance_r2_{}.csv".format(soil_type)
-# file_AI_performance_mse = "../results/Performance_mse_{}.csv".format(soil_type)
-
+# file_data = "../data/data_PSD_Kf_por.csv"
+file_data = "../data/data_PSD_Kf_por_props.csv"
 file_AI_performance_r2 = "../results/Performance_{}_{}_{}_r2.csv".format(feature,target,soil_type)
 file_AI_performance_mse = "../results/Performance_{}_{}_{}_mse.csv".format(feature,target,soil_type)
 
-if soil_type in ['full','all','silt','sand','clay']:
-    file_application_data = "../data/data_PSD_Kf_props.csv" ### Top-All
-if soil_type == 'por':
-    file_application_data = "../data/data_PSD_por_Kf.csv" ###Top-Por
 
 ### ===========================================================================
 ### Initialize Analysis
@@ -52,7 +46,7 @@ Analysis = PSD_2K_ML.PSD_2K_ML(
                         target = target,                            
                         )
 
-data_PSD = Analysis.prepare_data(filename=file_application_data,
+data_PSD = Analysis.prepare_data(filename=file_data,
                       soil_type = soil_type, 
                       remove_outlier = False,
                       verbose = verbose,      

@@ -8,13 +8,14 @@ import numpy as np
 
 plt.close('all')
 
-soil_type = 'all'
+#soil_type = 'topall'
+soil_type = 'clay' #''silt'#'sand' #'topall' #  'por' #
 feature = 'PSD' #'dX_por' #'dX' #
 target = 'Kf' #'por' # #
 
-soil_type = 'all'
 algorithms = ['DT','RF','XG','LR','SVR','ANN']
 data_sets =['full_set','training_set','testing_set' ] #['full_set'] #
+titles = ['full set (100%)','training set (80%)','testing set (20%)' ] #['full_set'] #
 # verbose = True #False #
 
 print('\n###############################################')
@@ -25,8 +26,8 @@ print('#################################################\n')
 ### Set file pathes and names
 ### ===========================================================================
 
-file_AI_performance_r2 = "../results/Performance_{}_{}_{}_r2.csv".format(feature,target,soil_type)
-fig_results = '../results/Fig_Bar_R2_{}_{}_{}'.format(feature,target,soil_type)
+file_AI_performance_r2 = "../results/Performance_{}_{}_{}_r2.csv"#.format(feature,target,soil_type)
+fig_results = '../results/Fig_Bar_NSE_{}_{}_{}'.format(feature,target,soil_type)
 
 # =============================================================================
 # Read in data
@@ -69,11 +70,18 @@ for j,data_set in enumerate(data_sets):
     
     
     ax[j].set_ylim([0,1.1])
-    #plt.grid(True)
+    # ax[j].grid(True)
     ax[j].tick_params(axis="both",which="major",labelsize=textsize)
-    ax[j].set_title("{}".format(data_set),fontsize=textsize)
+    ax[j].set_title("{}".format(titles[j]),fontsize=textsize)
+    # ax[j].set_title("{}".format(data_set),fontsize=textsize)
 
-ax[0].set_ylabel(r"$R^2$",fontsize=textsize)
+ax[0].text(-0.05,1.1,'{}'.format(soil_type),
+            fontsize=textsize, transform=ax[0].transAxes,
+            bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
+
+
+ax[0].set_ylabel(r"$NSE$",fontsize=textsize)
+# ax[0].set_ylabel(r"$R^2$",fontsize=textsize)
 plt.tight_layout()
-# plt.savefig(fig_results+'.png',dpi=300)
-fig.savefig(fig_results+'.pdf')
+#plt.savefig(fig_results+'.png',dpi=300)
+# fig.savefig(fig_results+'.pdf')

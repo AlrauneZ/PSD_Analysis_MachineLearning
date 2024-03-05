@@ -69,10 +69,20 @@ class PSD_2K_ML(PSD_Analysis):
 
     def prepare_data(self,
                      filename = False,
-                     soil_type = 'full', 
+                     soil_type = 'topall', 
                      remove_outlier = False,
                      verbose = False,                  
                   ): 
+
+        """
+            soil_type options:
+                - topall
+                - sand
+                - silt
+                - clay
+                - por
+        """
+
 
         if filename:
             # function inheritated from PDS_Analysis
@@ -84,7 +94,7 @@ class PSD_2K_ML(PSD_Analysis):
             self.remove_outliers(verbose = verbose)
             
         self.soil_type = soil_type            
-        if soil_type not in ['full','all','por']:
+        if self.soil_type in ['sand','silt','clay']:
             # function inheritated from PDS_Analysis
             self.sub_sample_soil_type(soil_type = soil_type,
                                       inplace = True,
@@ -92,13 +102,20 @@ class PSD_2K_ML(PSD_Analysis):
                                       verbose = verbose,
                                       )
 
+        if self.soil_type == 'por':
+            # function inheritated from PDS_Analysis
+            self.sub_sample_por(inplace = True,
+                                filter_props = False,
+                                verbose = verbose,
+                                )
+
         if self.feature in ['dX','dX_por']:
             # self.prep_dx(verbose = verbose)
             self.dX = self.calc_psd_diameters(diams = [10,50,60])
             
         if verbose:        
             print('---------------------------------\n   Data Preparation \n---------------------------------')
-            print("Input data of soil types: {}".format(soil_type))
+            print("Input data of soil types: {}".format(self.soil_type))
             print("Number of samples: {}\n".format(len(self.data["Kf"].values)))
 
         return self.data
@@ -251,9 +268,9 @@ class PSD_2K_ML(PSD_Analysis):
 
         # self.best_params = DIC_best_params[self.algorithm][self.soil_type]
         if self.feature == 'PSD' and self.target =='por':
-            self.best_params = DIC_best_params['PSD_por'][self.algorithm][self.soil_type]   
+            self.best_params = DIC_best_params['PSD_por'][self.soil_type][self.algorithm]
         else:
-            self.best_params = DIC_best_params[self.feature][self.algorithm][self.soil_type]   
+            self.best_params = DIC_best_params[self.feature][self.soil_type][self.algorithm]
         
         self.AI.set_params(**self.best_params)
         if verbose:
@@ -290,8 +307,8 @@ class PSD_2K_ML(PSD_Analysis):
         elif self.feature == 'dX':
             self.feature_var = self.dX
         elif self.feature == 'dX_por':
-            self.feature_var = self.dX
-            self.feature_var['por'] = self.data['por']
+            self.feature_var = self.dX.copy()
+            self.feature_var['porositeit'] = self.data.porositeit.values
         else: 
             raise ValueError('Choice of feature variable not implemented.')
 
@@ -306,6 +323,13 @@ class PSD_2K_ML(PSD_Analysis):
                              **kwargs,
                              ):
 
+        """
+            target - type of target variable, options:
+                - Kf --> log10(Kf) (default)
+                - por --> measured porosity
+        
+        """
+
         if target is not None: #update feature variable setting
             self.target=target
         
@@ -318,7 +342,7 @@ class PSD_2K_ML(PSD_Analysis):
             else:
                 self.target_var = self.data.Kf.values
         elif self.target == 'por':
-            self.target_var = self.data['por']
+            self.target_var = self.data.porositeit.values
         else: 
             raise ValueError('Choice of feature variable not implemented.')
 

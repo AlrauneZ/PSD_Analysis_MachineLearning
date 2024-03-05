@@ -13,13 +13,16 @@ Author: A. Zech
 """
 
 import pandas as pd
-#import numpy as np
+import numpy as np
 
 ### --- File names for input and output data ---###
 ###################################################
 
 file_psd_data = "../data/TopInt_meetgegevens_DL&KGVparameters_18-01-2024.csv"
-file_application_data = "../data/data_PSD_Kf.csv"
+file_por_data = "../data/TopInt_porosity_sandy_samples_19-01-2023.csv"
+
+#file_application_data = "../data/data_PSD_Kf.csv"
+file_data = "../data/data_PSD_Kf_por.csv"
 
 ### list of PSD filter sizes (predefined)
 sieve_diam = [.00001,0.0001,0.0002,0.0005,.001,.002,.004,.008,.016,.025,.035,.05,.063,.075,.088,.105,.125,.150,.177,.21,.25,.3,.354,.42,.5,.6,.707,.85,1.,1.190,1.41,1.68,2]
@@ -27,14 +30,20 @@ sieve_diam = [.00001,0.0001,0.0002,0.0005,.001,.002,.004,.008,.016,.025,.035,.05
 ### column names in excel file for relevant information:   
 name_K = 'K (m/d 10C)'
 name_lithoclass = 'Lithoklasse_gemeten'
-#name_por = 'Lithoklasse_gemeten'
+name_ID = 'LocDepth_ID'
+name_por = 'porositeit'
 
 ### --- Load Data from excel file and perform filtering of samples 
 ##################################################################
-data = pd.read_csv(file_psd_data)   # read in data as panda data frame
+#data = pd.read_csv(file_psd_data)   # read in data as panda data frame
+data_psd = pd.read_csv(file_psd_data)   # read in data as panda data frame
+data_por = pd.read_csv(file_por_data)   # read in data as panda data frame
 
-### --- Quality Check ---###
-############################
+### combines data frames, containing samples with also porosity --- ###
+###########################################
+#data = pd.merge(data_psd, data_por, how='inner', on=[name_ID])  # data set only containing samples with porosity 
+data = pd.merge(data_psd, data_por, how='left', on=[name_ID]) # complete data set, where values of porosity are added (otherwise nan)
+#print(test[name_por].count())
 
 ### --- extract PSD from data-frame --- ###
 ###########################################
@@ -46,16 +55,20 @@ data_app = pd.DataFrame(data, columns=sieve_classes)#.values
 ### --- extract Kf and lithoclass from data-frame --- ###
 #########################################################
 data_app['Kf'] = data[name_K]
+data_app['logK'] = np.log10(data[name_K])
 data_app['lithoclass'] = data[name_lithoclass]
+data_app[name_por] = data[name_por]
 print("Number of available samples:", len(data_app.index))
 
+test =  data.columns[[x.startswith("F") for x in data.columns]]
 ### --- drop samples with NAN values (in Kf and sieve samples)
 ##############################################################
-data_app.dropna(inplace = True)
+data_app.dropna(subset = sieve_classes,inplace = True)
+data_app.dropna(subset = ['Kf'],inplace = True)
 data_app.reset_index(drop=True,inplace=True) # reset index in data frame
 print("Total number of applied samples:", len(data_app.index))
 
 ### --- write filtered data to file --- ###
 ###########################################
-data_app.to_csv(file_application_data,index = False)
+data_app.to_csv(file_data,index = False)
 
