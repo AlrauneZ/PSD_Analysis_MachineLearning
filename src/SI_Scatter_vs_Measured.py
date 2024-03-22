@@ -15,9 +15,9 @@ plt.close('all')
 
 ### algorithms to plot (and their order)
 algs = ["DT", "RF", "XG", "LR", "SVR", "ANN"]
-soil_type ='por' # 'topall' #  'clay' #'silt'#'sand' #
-feature = 'dX_por' #'dX' #'PSD' #
-target = 'Kf' # 'por' #
+soil_type ='por' #'sand' # 'topall' #  'clay' #'silt'#
+feature = 'PSD' #'dX_por' #'dX' #
+target =  'por' #'Kf' #
 verbose = True #False #
 
 ### ===========================================================================
@@ -54,7 +54,7 @@ print("###########################################")
 # Create a subplot for each model's comparison plot
 
 # fig, axs = plt.subplots(nrows=3, ncols=2, figsize=(7.5, 9), 
-fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(7.5, 5.5), 
+fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(7.5, 5.25), 
                         sharex = True, sharey = True)##, layout='constrained')
 axs = axs.ravel()
 
@@ -108,8 +108,12 @@ for i,algorithm in enumerate(algs):
         label=algorithm,
         zorder = 2)
 
-    axs[i].set_xlabel("$\log_{10}(K_{obs}$ [m/d])",fontsize=textsize)
-    axs[i].set_ylabel("$\log_{10}(K_{pred}$ [m/d])",fontsize=textsize)
+    if target == 'por':
+        axs[i].set_xlabel(r"$\theta_{obs}$)",fontsize=textsize)
+        axs[i].set_ylabel(r"$\theta_{pred}$)",fontsize=textsize)
+    else:
+        axs[i].set_xlabel("$\log_{10}(K_{obs}$ [m/d])",fontsize=textsize)
+        axs[i].set_ylabel("$\log_{10}(K_{pred}$ [m/d])",fontsize=textsize)
     # axs[i].set_title('{}'.format(algorithm),fontsize=textsize)
     axs[i].grid(True, zorder = 1)
     axs[i].tick_params(axis="both",which="major",labelsize=textsize)

@@ -7,7 +7,7 @@ plt.close('all')
 
 ### algorithms to plot (and their order)
 algs = ["DT", "RF", "XG", "LR", "SVR", "ANN"]
-soil_type ='clay' #'silt'#'sand' #'por' # 'topall' #  
+soil_type ='topall' #  'clay' #'silt'#'sand' #'por' # 
 feature = 'PSD' #'dX_por' #'dX' #
 target = 'Kf' #'por' # 
 verbose = True #False #
@@ -18,7 +18,7 @@ verbose = True #False #
 ### ===========================================================================
   
 file_data = "../data/data_PSD_Kf_por_props.csv"
-file_fig = '../results/Fig_Scatter_Measured_{}'.format(soil_type)
+file_fig = '../results/Fig03_Scatter_Measured_{}'.format(soil_type)
 
 textsize = 8
 markersize = 2

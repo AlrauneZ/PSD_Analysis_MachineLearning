@@ -41,6 +41,15 @@ Analysis.psd_properties_to_csv(file_psd_props)
 
 print('\n#################################\n   Input data: full\n')
 
+
+### Geometric mean of selected psd properties
+kg_d10 = np.exp(np.mean(np.log(Analysis.psd_properties['d10'])))
+kg_d5 = np.exp(np.mean(np.log(Analysis.psd_properties['d5'])))
+kg_d50 = np.exp(np.mean(np.log(Analysis.psd_properties['d50'])))
+print("Geometric mean of d10: ",kg_d10)
+print("Geometric mean of d5: ",kg_d5)
+print("Geometric mean of d50: ",kg_d5043)
+
 stats = Analysis.stats_data(
     other_stats2save = ['logK','porositeit'],  
     file_data_stats = file_data_stats.format('full'))

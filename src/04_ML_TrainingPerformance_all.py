@@ -12,8 +12,8 @@ import PSD_2K_ML
 
 
 soil_type = 'por'# 'topall'## 'clay' #''full' #'silt' #'sand' #
-feature ='PSD' # 'dX_por' #'dX' #
-target = 'por' # #'Kf' #
+feature ='dX' #'PSD' # 'dX_por' #
+target = 'Kf' #'por' # #
 
 algorithms = ['DT','RF','XG','LR','SVR','ANN']
 sets = ['training_set','testing_set','full_set']

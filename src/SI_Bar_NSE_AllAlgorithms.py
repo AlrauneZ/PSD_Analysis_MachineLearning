@@ -8,8 +8,7 @@ import numpy as np
 
 plt.close('all')
 
-#soil_type = 'topall'
-soil_type = 'topall' #'clay' #''silt'#'sand' # 'por' # 
+soil_type =  'por' # 'topall' #'clay' #''silt'#'sand' #
 feature = 'dX' #'PSD' #'dX_por' #
 target = 'Kf' #'por' # #
 
@@ -17,6 +16,11 @@ algorithms = ['DT','RF','XG','LR','SVR','ANN']
 data_sets =['full_set','training_set','testing_set' ] #['full_set'] #
 titles = ['full set (100%)','training set (80%)','testing set (20%)' ] #['full_set'] #
 # verbose = True #False #
+
+text = r"$d_X$ $\rightarrow$ $K_f$"
+# text = r"$d_X$ & $\theta$ $\rightarrow$ $K_f$"
+# text = r"PSD $\rightarrow$ $K_f$"
+# text = r"PSD $\rightarrow$ $\theta$"
 
 print('\n###############################################')
 print(' Visualization of Training and Test Performance')
@@ -63,7 +67,7 @@ for j,data_set in enumerate(data_sets):
     ### Annotate each bar with its value
     for i,bar in enumerate(full_bar):
         val = results_r2.loc[data_set].iloc[argsort[i]]
-        ax[j].text(bar.get_x() + bar.get_width() / 2,bar.get_height(),
+        ax[j].text(bar.get_x() + bar.get_width() / 2,max(0,bar.get_height()),
                 '{:.2f}'.format(val), ha='center', va='bottom', fontsize=textsize,zorder=3)
     
     
@@ -75,8 +79,13 @@ for j,data_set in enumerate(data_sets):
     # ax[j].set_title("{}".format(data_set),fontsize=textsize)
 
 # ax[0].text(-0.05,1.1,'Top-all',
-ax[0].text(-0.05,1.1,'Top-{}'.format(soil_type),
+ax[0].text(-0.15,1.1,text,
             fontsize=textsize+1, transform=ax[0].transAxes,
+            bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
+
+# ax[1].text(-0.1,1.1,'Top-all',
+ax[1].text(-0.15,1.1,'Top-{}'.format(soil_type),
+            fontsize=textsize+1, transform=ax[1].transAxes,
             bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
 
 

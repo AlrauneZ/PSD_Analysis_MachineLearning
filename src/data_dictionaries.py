@@ -315,7 +315,35 @@ DIC_best_params['dX'] = dict(
                 hidden_layer_sizes = (150,100,50), 
             ),                     
     ),
+    por = dict(
+        DT = dict(
+                max_depth = 10, 
+                min_samples_split= 3,
+            ),
+        RF = dict(
+                max_depth =18, 
+                min_samples_split= 2, 
+            ),
+     
+        XG = dict(
+                max_depth = 12, 
+                learning_rate = 0.05,
+            ),
+        LR = dict(#
+                alpha =  0.1,
+           ),
+        SVR = dict(
+                C = 10, 
+                gamma = 0.1,
+                ),
+        ANN = dict(#
+                activation = 'relu',  
+                hidden_layer_sizes = (120,80,40), 
+            ),                     
+    ),
+
 )
+
 ### best hyperparameter values for d10,d50,d60,por --> Kf (Top-Por)
 DIC_best_params['dX_por'] = dict(
     por = dict(
