@@ -49,26 +49,26 @@ data = pd.merge(data_psd, data_por, how='left', on=[name_ID]) # complete data se
 ###########################################
 sieve_classes = data.columns[[x.startswith("F") for x in data.columns]]
 if len(sieve_diam)-1 != len(sieve_classes.values):
-     print("WARNING: number of sieve classes does not match to pre-specified list of sieve diameters.")
+      print("WARNING: number of sieve classes does not match to pre-specified list of sieve diameters.")
 data_app = pd.DataFrame(data, columns=sieve_classes)#.values
 
-### --- extract Kf and lithoclass from data-frame --- ###
-#########################################################
-data_app['Kf'] = data[name_K]
-data_app['logK'] = np.log10(data[name_K])
-data_app['lithoclass'] = data[name_lithoclass]
-data_app[name_por] = data[name_por]
-print("Number of available samples:", len(data_app.index))
+# ### --- extract Kf and lithoclass from data-frame --- ###
+# #########################################################
+# data_app['Kf'] = data[name_K]
+# data_app['logK'] = np.log10(data[name_K])
+# data_app['lithoclass'] = data[name_lithoclass]
+# data_app[name_por] = data[name_por]
+# print("Number of available samples:", len(data_app.index))
 
-test =  data.columns[[x.startswith("F") for x in data.columns]]
-### --- drop samples with NAN values (in Kf and sieve samples)
-##############################################################
-data_app.dropna(subset = sieve_classes,inplace = True)
-data_app.dropna(subset = ['Kf'],inplace = True)
-data_app.reset_index(drop=True,inplace=True) # reset index in data frame
-print("Total number of applied samples:", len(data_app.index))
+# test =  data.columns[[x.startswith("F") for x in data.columns]]
+# ### --- drop samples with NAN values (in Kf and sieve samples)
+# ##############################################################
+# data_app.dropna(subset = sieve_classes,inplace = True)
+# data_app.dropna(subset = ['Kf'],inplace = True)
+# data_app.reset_index(drop=True,inplace=True) # reset index in data frame
+# print("Total number of applied samples:", len(data_app.index))
 
-### --- write filtered data to file --- ###
-###########################################
-data_app.to_csv(file_data,index = False)
+# ### --- write filtered data to file --- ###
+# ###########################################
+# data_app.to_csv(file_data,index = False)
 

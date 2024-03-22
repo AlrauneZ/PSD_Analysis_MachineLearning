@@ -20,11 +20,15 @@ soil_type = 'topall' #'silt'#'sand' # 'clay' # 'por' #'clay' #
 verbose = True #False #
 feature = 'dX' #'PSD' #'dX_por' #
 target = 'Kf' #'por' # 
+test = 0
 
 file_data = "../data/data_PSD_Kf_por_props.csv"
 # file_data = "../data/data_PSD_Kf_por.csv"
-
-test = 0
+dir_results = "../results/HP_tuning_{}_{}/"#.format(feature,target)
+file_results_GS = "Hyper_{}_{}_"+str(test)+"_GS.csv"
+file_results_skopt = "Hyper_{}_{}_"+str(test)+"_Skopt.csv"
+file_figure_skopt = 'HP_{}_{}_{}_skopt.png'#.format(soil_type,algorithm,test)
+ 
 
 for algorithm in algorithms:
     print('\n################################################')
@@ -37,14 +41,13 @@ for algorithm in algorithms:
     ### Set file pathes and names
     ### ===========================================================================   
     
-    dir_results_HP = "../results/HP_tuning_{}_{}/".format(feature,target)
+    dir_results_HP=dir_results.format(feature,target)
     if not os.path.exists(dir_results_HP):
         os.makedirs(dir_results_HP)
-        
-    file_results_GS = dir_results_HP+"Hyper_{}_{}_"+str(test)+"_GS.csv"
-    file_results_skopt = dir_results_HP+"Hyper_{}_{}_"+str(test)+"_Skopt.csv"
-    file_figure_skopt = dir_results_HP+'HP_{}_{}_{}_skopt.png'.format(soil_type,algorithm,test)
-    
+    path_results_GS = dir_results_HP+file_results_GS
+    path_results_skopt = dir_results_HP+file_results_skopt
+    path_figure_skopt = dir_results_HP+file_figure_skopt.format(soil_type,algorithm,test)
+            
     ### ===========================================================================
     ### Initialize Analysis and load in data
     ### ===========================================================================
@@ -79,7 +82,7 @@ for algorithm in algorithms:
     
     ### perform hyperparameter testings (includes specification of AI algorithm)
     Analysis.hyperparameter_GS(verbose = verbose,
-                               file_results=file_results_GS,                           
+                               file_results=path_results_GS,                           
                                )
     Analysis.training()
     Analysis.prediction(verbose = verbose)
@@ -95,7 +98,7 @@ for algorithm in algorithms:
     ### ===========================================================================
     
     results = Analysis.hyperparameter_skopt(verbose = verbose,
-                                            file_results=file_results_skopt,                
+                                            file_results=path_results_skopt,                
                                             )  
     
     textsize= 10
@@ -111,7 +114,7 @@ for algorithm in algorithms:
                 fig2[i,j].set_xlabel(fig2[i,j].get_xlabel(),fontsize = textsize)
                 fig2[i,j].set_ylabel(fig2[i,j].get_ylabel(),fontsize = textsize)
     # plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.3, hspace=0.3)
-    plt.savefig(file_figure_skopt,dpi = 300, bbox_inches = 'tight')
+    plt.savefig(path_figure_skopt,dpi = 300, bbox_inches = 'tight')
     
     ### ===========================================================================
     ###   Algorithm Performance with optimal Parameters

@@ -3,12 +3,14 @@
 
 """
 
-from PSD_2K_ML import PSD_2K_ML
+import PSD_2K_ML
 import matplotlib.pyplot as plt
 plt.close('all')
 
 algorithm = 'RF' #'ANN' #'DT' #'SVR' #'LR' #'LR' #
-soil_type = 'all'
+soil_type = 'topall'
+feature = 'PSD' #'dX_por' #'dX' #
+target = 'Kf' # 'por' #
 verbose = True #False #
 
 # =============================================================================
@@ -23,11 +25,17 @@ print("###############################")
 ### ===========================================================================
 ### Set file pathes and names
 ### ===========================================================================
-file_AI_data = "../data/AI_data.csv"
+# file_data = "../data/AI_data.csv"
+file_data = "../data/data_PSD_Kf_por_props.csv"
 
-Analysis = PSD_2K_ML() # Instance of PSD analysis with AI
+# Instance of PSD analysis with AI
+Analysis = PSD_2K_ML.PSD_2K_ML(
+                        algorithm = algorithm,
+                        feature = feature,
+                        target = target,                            
+                        )
 
-data_PSD = Analysis.prepare_data(filename=file_AI_data,
+data_PSD = Analysis.prepare_data(filename=file_data,
                       soil_type = soil_type, 
                       remove_outlier = False,
                       verbose = verbose,      
@@ -84,5 +92,5 @@ ax.set_xlim([-6.8,2.2])
 ax.tick_params(axis="both",which="major",labelsize=textsize)
 
 plt.tight_layout()
-plt.savefig('../results/Fig_Histogram_{}.png'.format(algorithm),dpi=300)
+# plt.savefig('../results/Fig_Histogram_{}.png'.format(algorithm),dpi=300)
 #plt.savefig('../results/Fig_Histogram_{}.pdf'.format(algorithm))

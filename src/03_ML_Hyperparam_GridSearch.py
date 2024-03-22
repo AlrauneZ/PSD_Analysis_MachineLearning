@@ -16,8 +16,7 @@ algorithm =  'XG' ##### # 'SVR'  #'LR' # 'RF'  # #'DT' #'ANN'#
 soil_type = 'clay' #'silt'# 'sand' # 'full' #
 verbose = True #False #
 
-
-test = 2
+# test = 0
 
 print('\n################################################')
 print('   Hyper parameter tuning for algorithm {}'.format(algorithm))
@@ -27,7 +26,7 @@ print('##################################################\n')
 ### Set file pathes and names
 ### ===========================================================================
 
-file_data = "../data/data_PSD_Kf_por.csv"
+file_data = "../data/data_PSD_Kf_por_props.csv"
 
 ### ===========================================================================
 ### Initialize Analysis and load in data
@@ -60,7 +59,7 @@ Analysis.data_split()#verbose = verbose)
 
 ### perform hyperparameter testings (includes specification of AI algorithm)
 Analysis.hyperparameter_GS(verbose = verbose,
-                           file_results = "../results/HP_tuning/Hyper_GS_{}_{}_"+str(test)+".csv"
+                           # file_results = "../results/HP_tuning/Hyper_GS_{}_{}_"+str(test)+".csv"
                            )
 Analysis.training()
 Analysis.prediction(verbose = verbose)

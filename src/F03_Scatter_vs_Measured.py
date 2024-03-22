@@ -19,7 +19,7 @@ verbose = True #False #
   
 file_data = "../data/data_PSD_Kf_por_props.csv"
 file_fig = '../results/Fig_Scatter_Measured_{}'.format(soil_type)
-\
+
 textsize = 8
 markersize = 2
 cmap = cm.get_cmap('Spectral')

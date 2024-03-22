@@ -131,5 +131,5 @@ ax.tick_params(axis="both",which="major",labelsize=textsize)
 #            loc = 'best', ncol=4, prop={'size': textsize})#,fontsize=textsize)
 
 plt.tight_layout()
-plt.savefig(file_fig+'.png',dpi = 300)
-plt.savefig(file_fig+'.pdf')
+# plt.savefig(file_fig+'.png',dpi = 300)
+# plt.savefig(file_fig+'.pdf')

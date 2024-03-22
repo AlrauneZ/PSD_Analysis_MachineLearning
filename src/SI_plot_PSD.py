@@ -34,13 +34,12 @@ i4 = np.argmin(AI_cfd['F850-1000'])
 i5 = np.argmax(AI_cfd['F4-8'])
 i6 = np.argmin(AI_cfd['F4-8'])
 
-
 # =============================================================================
 # Plot specifications 
 # =============================================================================
-fig = plt.figure(figsize=(5, 2.75))
-#fig = plt.figure(figsize=(3.75, 2.25))
-textsize = 12
+# fig = plt.figure(figsize=(5, 2.75))
+fig = plt.figure(figsize=(3.75, 2.25))
+textsize = 8
 lw = 2
 
 for i in range(50,700,100):
@@ -57,7 +56,6 @@ plt.plot(sieve_diam,AI_cfd.iloc[i4,:],lw = lw)
 plt.plot(sieve_diam,AI_cfd.iloc[i5,:],lw = lw)
 plt.plot(sieve_diam,AI_cfd.iloc[i6,:],lw = lw)
 
-
 plt.xlim([2e-4,2])
 plt.xlabel('Sieve diameter [mm]',fontsize=textsize)
 plt.ylabel('PSD [%]',fontsize=textsize)
@@ -67,18 +65,5 @@ plt.grid(True)
 plt.tick_params(axis="both",which="major",labelsize=textsize)
 
 plt.tight_layout()
-#plt.savefig('../results/Fig_PSDs.pdf')
-plt.savefig('../results/Fig_PSDs.png',dpi = 300)
-
-### one-by-one line of 
-# ax.plot(Analysis.y_test,Analysis.y_test, c="grey", linestyle = "dotted")
-
-# ax.set_xlabel("$\log_{10}(K_{obs}$)",fontsize=textsize)
-# ax.set_ylabel("$\log_{10}(K_{pred}$)",fontsize=textsize)
-# ax.set_title('{}'.format(algorithm),fontsize=textsize)
-# ax.grid(True, zorder = 1)
-# ax.tick_params(axis="both",which="major",labelsize=textsize)
-
-# ax.set_ylim([-8.1,2])
-
-
+# plt.savefig('../results/SI_Fig_PSDs.png',dpi = 300)
+plt.savefig('../results/SI_Fig_PSDs.pdf')

@@ -49,19 +49,29 @@ class PSD_Analysis():
 
     def set_data(self,
                 data,
-                sieve_diam,
+                sieve_diam = False,
+                **kwargs,
                 ):
         
         self.data = data
-        self.settings['sieve_diam'] = sieve_diam
-        self.filter_psd_data()
+        if sieve_diam:
+            self.settings['sieve_diam'] = sieve_diam
+        self.filter_psd_data(**kwargs)
 
-    def filter_psd_data(self):
+    def filter_psd_data(self,
+                        all_columns = False,
+                        **kwargs):
 
-        sieve_classes = self.data.columns[[x.startswith("F") for x in self.data.columns]]
+        if all_columns:
+            sieve_classes = self.data.columns[:] #self.data.columns[1:]
+        else:
+            sieve_classes = self.data.columns[[x.startswith("F") for x in self.data.columns]]
+            
         self.sieve_diam = np.array(self.settings['sieve_diam'])
         if len(self.sieve_diam)-1 != len(sieve_classes.values):
             print("WARNING: number of sieve classes does not match to pre-specified list of sieve diameters.")
+            # print(len(self.sieve_diam)-1)
+            # print(len(sieve_classes.values))
         self.psd = pd.DataFrame(self.data, columns=sieve_classes)
 
     def calc_psd_diameters(self,
@@ -74,7 +84,7 @@ class PSD_Analysis():
             all typical diameters are calculated and saved in a data frame
             
         """
-        # self.sieve_diam = np.array(self.settings['sieve_diam'])
+        self.sieve_diam = np.array(self.settings['sieve_diam'])
         
         def interp(x):
             aa = 10**np.interp(np.array(diams),np.cumsum(x),np.log10(self.sieve_diam[1:]))
@@ -152,7 +162,8 @@ class PSD_Analysis():
             aa = np.interp(np.log10(sieve_calc),np.log10(self.sieve_diam[1:]),np.cumsum(x))
             return aa
 
-        psd_calc = pd.DataFrame(self.psd.apply(interp, axis=1).tolist(), columns=sieve_calc).add_prefix('d')
+        psd_calc = pd.DataFrame(self.psd.apply(interp, axis=1).tolist(), 
+                                columns=sieve_calc).add_prefix('d')
         self.psd_calc = psd_calc
 
         # percentages lutum, silt, sand 

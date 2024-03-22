@@ -15,11 +15,11 @@ warnings.filterwarnings("ignore")
 plt.close('all')
 
 
-algorithm =  'ANN' # ########### 'DT' #'SVR' #'RF''LR' # 'XG' #
+algorithm = 'LR' # 'ANN' # ########### 'DT' #'SVR' #'RF' 'XG' #
 soil_type =  'silt' ###'sand' #'full' # 'clay' #
 verbose = True #False #
 
-test = 0
+# test = 0
 
 print('\n################################################')
 print('   Hyper parameter tuning for algorithm {}'.format(algorithm))
@@ -29,7 +29,7 @@ print('##################################################\n')
 ### Set file pathes and names
 ### ===========================================================================
 
-file_data = "../data/data_PSD_Kf_por.csv"
+file_data = "../data/data_PSD_Kf_por_props.csv"
 textsize= 10
 
 ### ===========================================================================
@@ -64,9 +64,8 @@ Analysis.data_split()#verbose = verbose)
 ### ===========================================================================
 
 results = Analysis.hyperparameter_skopt(verbose = verbose,
-                                        file_results = "../results/HP_tuning/Hyper_Skopt_{}_{}_"+str(test)+".csv"
+                                        # file_results = "../results/HP_tuning/Hyper_Skopt_{}_{}_"+str(test)+".csv"
                                         )
-
 
 fig2 = skopt.plots.plot_objective(results)
 if algorithm == 'LR':
@@ -80,7 +79,7 @@ else:
             fig2[i,j].set_xlabel(fig2[i,j].get_xlabel(),fontsize = textsize)
             fig2[i,j].set_ylabel(fig2[i,j].get_ylabel(),fontsize = textsize)
 # plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.3, hspace=0.3)
-plt.savefig('../results/HP_tuning/HP_scopt_obj_{}_{}_{}.png'.format(Analysis.soil_type,Analysis.algorithm,test),dpi = 300, bbox_inches = 'tight')
+# plt.savefig('../results/HP_tuning/HP_scopt_obj_{}_{}_{}.png'.format(Analysis.soil_type,Analysis.algorithm,test),dpi = 300, bbox_inches = 'tight')
 
 ### ===========================================================================
 ###   Algorithm Performance with optimal Parameters

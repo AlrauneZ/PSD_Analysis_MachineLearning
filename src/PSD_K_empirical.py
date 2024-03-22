@@ -31,13 +31,13 @@ class PSD_to_K_Empirical(PSD_Analysis):
         self.settings.update(**settings_new)
 
         if data is not None:
-            self.set_input_values()
+            self.set_data() 
+            # self.set_input_values()
         
     def set_input_values(self):        
 
         self.calc_psd_diameters()
         self.calc_psd_parameters()
-
         self.calc_parameters()
 
         self.por = self.psd_properties['por'].values 
@@ -62,9 +62,17 @@ class PSD_to_K_Empirical(PSD_Analysis):
             tau = tau,
             )
 
-    def write_to_csv(self,filename):
+    def write_to_csv(self,
+                     filename,
+                     add_data = False,
+                     ):
         
-        self.K_empirical.to_csv(filename)
+        if add_data:
+            df = pd.concat([self.data,self.K_empirical],axis = 1)
+        else:
+            df = self.K_empirical
+
+        df.to_csv(filename)
 
     def PSD2K_fullappMethods(self,**kwargs):
 
@@ -79,7 +87,7 @@ class PSD_to_K_Empirical(PSD_Analysis):
         self.AlyamaniSen(app=False,**kwargs)
         self.Shepherd(app=False,**kwargs)
         self.VanBaaren(app=False,**kwargs)
-        self.Kozeny(app=False,**kwargs)
+        # self.Kozeny(app=False,**kwargs)
         
         return self.K_empirical
 
@@ -262,17 +270,22 @@ class PSD_to_K_Empirical(PSD_Analysis):
         return K
 
     def Kozeny(self,
-               N_Ko = 553000,
+               N_Ko = 5530000,
                app = True,
                **kwargs):
         ##Kozeny
+        ### TODO: check units --> here is something off
 
         phi_n = self.por**3 / ( ( 1 - self.por )**2 )
         de = 0.1*self.d10
+        #K  = self.rho_g_mu* N_Ko* de**2 *phi_n * (10000*self.settings['darcy2m2'])*(60*60*24)/100        
     
-        K  = self.rho_g_mu* N_Ko* de**2 *phi_n * (10000*self.settings['darcy2m2'])*(60*60*24)/100
+        Kmd  = 5.53*(1000.*de)**2*phi_n
+        K = Kmd * self.settings['darcy2m2']*(Kmd/1000) *10000 * self.rho_g_mu #[m^2 -> cm^2 -> cm^2 * 1/(cm s) --> cm/s]
 
-        # k = 5.53*(1000*d10)**2 *(n**3/(1-n)**2)
+        K  = self.rho_g_mu* N_Ko* de**2 *phi_n * 10*self.settings['darcy2m2']
+
+        # k = 5.53*(1000*d10)**2 
         # K = (k/1000)*(100*100*darcy2m2)*rho_g_mu
         # CF = (60*60*24)/100
         # K = CF*K

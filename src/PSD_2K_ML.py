@@ -18,6 +18,7 @@ from data_dictionaries import DIC_best_params
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split, GridSearchCV #RepeatedKFold, cross_val_score,
 from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.inspection import permutation_importance
 
 from sklearn.neural_network import MLPRegressor
 from sklearn.tree import DecisionTreeRegressor
@@ -526,6 +527,32 @@ class PSD_2K_ML(PSD_Analysis):
             print("R2 is  {:.3f}".format(self.r2))
 
         return self.y_pred,self.mse, self.rmse, self.r2
+
+    def feature_importance(self):
+
+        """
+        prepare data for feature importance plot based on permutation importances 
+        """
+
+
+        if self.feature != 'PSD':
+            print("Warning: routine only designed for feature PSD")
+
+        feature_names = list(self.psd)
+        feature_names[0] = 'F0.01-0.1'
+        feature_names[1] = 'F0.1-0.2'
+        feature_names[2] = 'F0.2-0.5'
+        feature_names[3] = 'F0.4-1'
+
+        ###Tree’s Feature Importance from permutation importances 
+        result = permutation_importance(
+            self.AI, self.x_test, self.y_test, n_repeats=10, random_state=42, n_jobs=2)
+
+        importances_mean = pd.Series(result.importances_mean, index=feature_names)
+        importances_std = result.importances_std
+
+        return importances_mean,importances_std 
+        
 
     def application(self, 
                     x_app, 
