@@ -75,7 +75,9 @@ print("NSE RF vs measured:", Analysis.r2)
 
 # Plot the actual and predicted values for each model
 plt.close('all')
-fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(7.5, 2.8), sharey = True)##, layout='constrained')
+#fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(6.5, 2.8), sharey = True)##, layout='constrained')
+# fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(7.5, 2.8), sharey = True)##, layout='constrained')
+fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(7.5, 3.5), sharey = True)##, layout='constrained')
 axs = axs.ravel()
 
 i = 1
@@ -93,6 +95,7 @@ axs[i].set_xlabel("$\log_{10}(K_{RF}$ [m/d])",fontsize=textsize)
 axs[i].set_ylabel("$\log_{10}(K_{Barr}$ [m/d])",fontsize=textsize)
 # axs[i].set_title('{}'.format(algorithm),fontsize=textsize)
 axs[i].grid(True, zorder = 1)
+axs[i].set_yticks([2,0,-2,-4,-6])
 axs[i].tick_params(axis="both",which="major",labelsize=textsize)
 
 # ### Plotting the 5th and 95th percentile range of fit
@@ -110,6 +113,9 @@ axs[i].set_ylim([0.98*k_min,1.05*k_max])
 axs[i].text(0.1,0.9,'NSE = {:.2f}'.format(r2_Barr_RF),
             fontsize=textsize, transform=axs[i].transAxes,
             bbox = dict(boxstyle='round', facecolor='white'))
+
+axs[i].text(-0.1,-0.1,'(b)',
+            fontsize=textsize, transform=axs[i].transAxes) #,            bbox = dict(boxstyle='round', facecolor='white'))
 
 i = 0
 scatter = axs[i].scatter(
@@ -143,6 +149,14 @@ axs[i].set_ylim([0.98*k_min,1.05*k_max])
 axs[i].text(0.1,0.9,'NSE = {:.2f}'.format(r2_Barr_measured),
             fontsize=textsize, transform=axs[i].transAxes,
             bbox = dict(boxstyle='round', facecolor='white'))
+
+axs[i].text(-0.1,-0.1,'(a)',
+            fontsize=textsize, transform=axs[i].transAxes)#, bbox = dict(boxstyle='round', facecolor='white'))
+
+axs[0].text(-0.05,1.05,'Top - All',
+            fontsize=textsize+1, transform=axs[0].transAxes,
+            bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
+
 
 fig.subplots_adjust(right=.85, bottom = 0.15)
 fig.legend(handles=scatter.legend_elements()[0], 

@@ -109,8 +109,8 @@ for i,algorithm in enumerate(algs):
         zorder = 2)
 
     if target == 'por':
-        axs[i].set_xlabel(r"$\theta_{obs}$)",fontsize=textsize)
-        axs[i].set_ylabel(r"$\theta_{pred}$)",fontsize=textsize)
+        axs[i].set_xlabel(r"$\theta_{obs}$",fontsize=textsize)
+        axs[i].set_ylabel(r"$\theta_{pred}$",fontsize=textsize)
     else:
         axs[i].set_xlabel("$\log_{10}(K_{obs}$ [m/d])",fontsize=textsize)
         axs[i].set_ylabel("$\log_{10}(K_{pred}$ [m/d])",fontsize=textsize)

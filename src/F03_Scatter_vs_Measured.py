@@ -117,7 +117,7 @@ for i,algorithm in enumerate(algs):
                 bbox = dict(boxstyle='round', facecolor='white'))
 
 #axs[0].set_title('Top - {}'.format(soil_type))
-axs[0].text(-0.05,1.1,'Top - {}'.format(soil_type),
+axs[0].text(-0.05,1.1,'Top - All'.format(soil_type),
             fontsize=textsize+1, transform=axs[0].transAxes,
             bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
 
@@ -135,4 +135,4 @@ fig.legend(handles=scatter.legend_elements()[0],
 
 ### plt.tight_layout()
 # plt.savefig(file_fig+'.png',dpi = 300)
-plt.savefig(file_fig+'.pdf')
+plt.savefig(file_fig+'2.pdf')
