@@ -31,7 +31,7 @@ print('#################################################\n')
 ### ===========================================================================
 
 file_AI_performance_r2 = "../results/Performance_{}_{}_{}_r2.csv"#.format(feature,target,soil_type)
-fig_results = '../results/Fig_Bar_R2_{}_{}_soiltypes'.format(feature,target)
+fig_results = '../results/Fig_Bar_NSE_{}_{}_soiltypes'.format(feature,target)
 
 # =============================================================================
 # Read in data
@@ -92,4 +92,4 @@ ax[0].set_ylabel(r"$NSE$",fontsize=textsize)
 # ax[0].set_ylabel(r"$R^2$",fontsize=textsize)
 plt.tight_layout()
 # plt.savefig(fig_results+'.png',dpi=300)
-# fig.savefig(fig_results+'.pdf')
+fig.savefig(fig_results+'.pdf')

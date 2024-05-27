@@ -9,7 +9,7 @@ import numpy as np
 plt.close('all')
 
 #soil_type = 'topall'
-soil_type = 'clay' #''silt'#'sand' #'topall' #  'por' #
+soil_type = 'topall' #'clay' #'silt'#'sand' #  'por' #
 feature = 'PSD' #'dX_por' #'dX' #
 target = 'Kf' #'por' # #
 
@@ -84,4 +84,4 @@ ax[0].set_ylabel(r"$NSE$",fontsize=textsize)
 # ax[0].set_ylabel(r"$R^2$",fontsize=textsize)
 plt.tight_layout()
 #plt.savefig(fig_results+'.png',dpi=300)
-# fig.savefig(fig_results+'.pdf')
+fig.savefig(fig_results+'.pdf')

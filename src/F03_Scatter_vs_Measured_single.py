@@ -82,8 +82,16 @@ bc95,pc95 = Analysis.quantiles_4_plot(bins=10,nth=95)
 # textsize = 8
 
 fig, ax = plt.subplots(figsize=(0.33*7.5,2.5))
-soil_class_name, soil_class_sample = Analysis.soil_class_specification()
+soil_class_names, soil_class_sample = Analysis.soil_class_specification(sort = True)
+#soil_class_names = list(soil_class_names)
+# soil_class_names_sort = ['zs1','zs2','zs3','zs4','zk','kz3','kz2','kz1','lz1','lz3','ks4', 'ks3','ks2', 'ks1' ]
+# # soil_class_names_sort = ['zs1','zs2','zs3','zs4','zk','lz1','lz3','ks4','kz3','kz2','kz1', 'ks3','ks2', 'ks1' ]
 
+# map_list = [soil_class_names_sort.index(o) for o in soil_class_names]
+# map_sample = [map_list[i] for i in soil_class_sample]#objects = [object_map[id] for id in ids]
+
+# soil_class_names = soil_class_names_sort
+# soil_class_sample = map_sample
 # =============================================================================
 
 ### scatter plot of predicted against observed K-values
@@ -92,7 +100,7 @@ scatter = ax.scatter(
     y = Analysis.y_pred, 
     # c = 'goldenrod',
     c = soil_class_sample, 
-    cmap= 'coolwarm', #'Spectral', 
+    cmap= 'Spectral',  #'coolwarm', #
     marker='.', 
     s= 10,
     zorder = 2)
@@ -120,6 +128,17 @@ ax.set_yticks([-6,-4,-2,0,2])
 ax.tick_params(axis="both",which="major",labelsize=textsize)
 #ax.axis("equal")
 
+fig.legend(handles=scatter.legend_elements(num=len(soil_class_names))[0], 
+            labels=list(soil_class_names), 
+            loc='upper right', 
+            ncol=1, 
+            # bbox_to_anchor=(1, 0.1),             
+            prop={'size': textsize},#,fontsize=textsize,
+            bbox_transform=fig.transFigure,
+#            columnspacing=1.0,
+#            title = "soil classes",
+            )
+
 #plt.legend(handles=scatter.legend_elements()[0], labels = soil_class_name, #title = "soil class", 
 #            loc = 'lower right', ncol=5, prop={'size': textsize-1},columnspacing=1.0)#,fontsize=textsize)
 
@@ -132,4 +151,4 @@ ax.tick_params(axis="both",which="major",labelsize=textsize)
 
 plt.tight_layout()
 # plt.savefig(file_fig+'.png',dpi = 300)
-# plt.savefig(file_fig+'.pdf')
+plt.savefig(file_fig+'3.pdf')

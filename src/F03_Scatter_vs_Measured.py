@@ -62,7 +62,7 @@ for i,algorithm in enumerate(algs):
                           )
     
     Analysis.set_target_variables()
-    soil_class_names,soil_class_sample = Analysis.soil_class_specification()
+    soil_class_names,soil_class_sample = Analysis.soil_class_specification(sort = True)
     k_min,k_max = np.min(Analysis.target_var),np.max(Analysis.target_var)
     
     ### specify AI algorithm
@@ -117,22 +117,22 @@ for i,algorithm in enumerate(algs):
                 bbox = dict(boxstyle='round', facecolor='white'))
 
 #axs[0].set_title('Top - {}'.format(soil_type))
-axs[0].text(-0.05,1.1,'Top - All'.format(soil_type),
+axs[0].text(-0.05,1.1,'Top - All',
             fontsize=textsize+1, transform=axs[0].transAxes,
             bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
 
 fig.subplots_adjust(bottom=.16)
-fig.legend(handles=scatter.legend_elements()[0], 
+fig.legend(handles=scatter.legend_elements(num=len(soil_class_names))[0], 
             labels=list(soil_class_names), 
             loc='lower center', 
-            ncol=7, 
+            ncol=8, 
             # bbox_to_anchor=(1, 0.1),             
             prop={'size': textsize},#,fontsize=textsize,
             bbox_transform=fig.transFigure,
 #            columnspacing=1.0,
-#            title = "soil classes",
+#            title = "lithoclasses",
             )
 
 ### plt.tight_layout()
 # plt.savefig(file_fig+'.png',dpi = 300)
-plt.savefig(file_fig+'2.pdf')
+plt.savefig(file_fig+'.pdf')

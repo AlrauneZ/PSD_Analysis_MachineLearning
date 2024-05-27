@@ -119,4 +119,4 @@ axs.tick_params(axis="x",which="major",labelsize=textsize-1)
 #             bbox = dict(boxstyle='round', facecolor='white'))
 
 fig.tight_layout()
-#fig.savefig(fig_results+'.pdf')
+fig.savefig(fig_results+'.pdf')

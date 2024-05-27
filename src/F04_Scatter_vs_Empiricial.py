@@ -62,7 +62,7 @@ bc5,pc5 = Analysis.quantiles_4_plot(bins=10,nth=5)
 bc95,pc95 = Analysis.quantiles_4_plot(bins=10,nth=95)
 
 
-soil_class_names,soil_class_sample = Analysis.soil_class_specification()
+soil_class_names,soil_class_sample = Analysis.soil_class_specification(sort = True)
 k_min,k_max = np.min(Analysis.target_var),np.max(Analysis.target_var)
 
 
@@ -159,7 +159,7 @@ axs[0].text(-0.05,1.05,'Top - All',
 
 
 fig.subplots_adjust(right=.85, bottom = 0.15)
-fig.legend(handles=scatter.legend_elements()[0], 
+fig.legend(handles=scatter.legend_elements(num=len(soil_class_names))[0], 
             labels=list(soil_class_names), 
             loc='center right', 
             ncol=1, 
@@ -167,7 +167,7 @@ fig.legend(handles=scatter.legend_elements()[0],
             prop={'size': textsize},#,fontsize=textsize,
             bbox_transform=fig.transFigure,
 #            columnspacing=1.0,
-            title = "soil classes",
+            title = "lithoclasses",
             )
 
 # plt.tight_layout()

@@ -18,10 +18,10 @@ import numpy as np
 ### --- File names for input and output data ---###
 ###################################################
 
-file_psd_data = "../data/TopInt_meetgegevens_DL&KGVparameters_18-01-2024.csv"
+# file_psd_data = "../data/TopInt_meetgegevens_DL&KGVparameters_18-01-2024.csv"
+file_psd_data = "../data/TopInt_meetgegevens_DL&KGVparameters_29-04-2024.csv"
 file_por_data = "../data/TopInt_porosity_sandy_samples_19-01-2023.csv"
 
-#file_application_data = "../data/data_PSD_Kf.csv"
 file_data = "../data/data_PSD_Kf_por.csv"
 
 ### list of PSD filter sizes (predefined)
@@ -29,7 +29,7 @@ sieve_diam = [.00001,0.0001,0.0002,0.0005,.001,.002,.004,.008,.016,.025,.035,.05
 
 ### column names in excel file for relevant information:   
 name_K = 'K (m/d 10C)'
-name_lithoclass = 'Lithoklasse_gemeten'
+name_litho = 'Hoofdlithologie_gemeten'
 name_ID = 'LocDepth_ID'
 name_por = 'porositeit'
 
@@ -52,23 +52,23 @@ if len(sieve_diam)-1 != len(sieve_classes.values):
       print("WARNING: number of sieve classes does not match to pre-specified list of sieve diameters.")
 data_app = pd.DataFrame(data, columns=sieve_classes)#.values
 
-# ### --- extract Kf and lithoclass from data-frame --- ###
-# #########################################################
-# data_app['Kf'] = data[name_K]
-# data_app['logK'] = np.log10(data[name_K])
-# data_app['lithoclass'] = data[name_lithoclass]
-# data_app[name_por] = data[name_por]
-# print("Number of available samples:", len(data_app.index))
+### --- extract Kf and lithoclass from data-frame --- ###
+#########################################################
+data_app['Kf'] = data[name_K]
+data_app['logK'] = np.log10(data[name_K])
+data_app['porosity'] = data[name_por]
+data_app['litho_measured'] = data[name_litho]
+# data_app['Grondsoort_gemeten'] = data['Grondsoort_gemeten']
+print("Number of available samples:", len(data_app.index))
 
-# test =  data.columns[[x.startswith("F") for x in data.columns]]
 # ### --- drop samples with NAN values (in Kf and sieve samples)
 # ##############################################################
-# data_app.dropna(subset = sieve_classes,inplace = True)
-# data_app.dropna(subset = ['Kf'],inplace = True)
-# data_app.reset_index(drop=True,inplace=True) # reset index in data frame
-# print("Total number of applied samples:", len(data_app.index))
+data_app.dropna(subset = sieve_classes,inplace = True)
+data_app.dropna(subset = ['Kf'],inplace = True)
+data_app.reset_index(drop=True,inplace=True) # reset index in data frame
+print("Total number of applied samples:", len(data_app.index))
 
 # ### --- write filtered data to file --- ###
 # ###########################################
-# data_app.to_csv(file_data,index = False)
+data_app.to_csv(file_data,index = False)
 

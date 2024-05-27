@@ -61,7 +61,7 @@ print('#################################################\n')
 ### ===========================================================================
 
 file_AI_performance_r2 = "../results/Performance_{}_{}_{}_r2.csv"#.format(feature,target,soil_type)
-fig_results = '../results/Fig05_Bar_NSE_features'#.format(feature,target)
+fig_results = '../results/Fig07_Bar_NSE_features'
 
 # =============================================================================
 # Read in data

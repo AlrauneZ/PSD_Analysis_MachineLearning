@@ -11,6 +11,9 @@ import copy
 
 DEF_settings = dict(
         sieve_diam = [.00001,0.0001,0.0002,0.0005,.001,.002,.004,.008,.016,.025,.035,.05,.063,.075,.088,.105,.125,.150,.177,.21,.25,.3,.354,.42,.5,.6,.707,.85,1.,1.190,1.41,1.68,2], # in mm
+        # d_lutum = 0.008,  # in mm
+        # d_silt  = 0.063,  # in mm
+        # d_sand = 2. ,      # in mm
         )    
 
 class PSD_Analysis():
@@ -197,10 +200,11 @@ class PSD_Analysis():
 
 
     def calc_NEN5104_classification(self,
+                                    treat_peat = False,
                                     write_ext_data = False):
 
         """
-        Performing classification of soil_type according to NEN5104 classification
+        Performing classification of lithology according to NEN5104 classification
         based on calculated percentages of sand, silt and lutum 
         """
 
@@ -215,12 +219,13 @@ class PSD_Analysis():
         #NEN5104 classification
         # # <8% C0.002 and >50% sand: sand
         df = pd.Series(data = np.zeros(len(self.psd.index)), dtype=str, name='soil_class')
-        df.iloc[( 50 <= perc_lutum)] = "ks1"
-        df.iloc[(35 <= perc_lutum)*(perc_lutum)<50] = "ks2"
-        df.iloc[(25 <= perc_lutum)*(perc_lutum)<35] = "ks3"
+        df.iloc[( 50. <= perc_lutum)] = "ks1"
+        df.iloc[(35. <= perc_lutum)*(perc_lutum)<50.] = "ks2"
+        df.iloc[(25. < perc_lutum)*(perc_lutum)<35.] = "ks3"
 
-        filter_1 = (perc_lutum < 25)*(50 <= perc_sand)
-        filter_2 = (perc_lutum < 25)*(perc_sand < 50)
+        filter_1 = (perc_lutum <= 25.)*(50. <= perc_sand)
+        filter_2 = (perc_lutum <= 25.)*(perc_sand < 50.)
+        df.iloc[filter_2] =  "ks4"
 
         df.iloc[(17.5 <= perc_lutum)*(perc_lutum < 25)*filter_1] = "kz1"
         df.iloc[(12 <= perc_lutum)*(perc_lutum < 17.5)*filter_1] = "kz2"
@@ -231,10 +236,13 @@ class PSD_Analysis():
         df.iloc[(perc_lutum < 5)*(82.5<= perc_sand)*(perc_sand < 92)*filter_1] = "zs2"
         df.iloc[(perc_lutum < 5)*(92<= perc_sand)*filter_1] = "zs1"
 
-        df.iloc[filter_2] =  "ks4"
         filter_3 = ( 1.9367 * perc_lutum + 26.4520 <= perc_silt)
         df.iloc[filter_2*filter_3] =  "lz3"
         df.iloc[filter_2*filter_3*( perc_sand < 15 )] =  "lz1"
+
+        if treat_peat:
+            filter_peat = self.data.litho_measured.isin(['V'])
+            df.iloc[filter_peat] = "p"
 
         self.psd_properties['soil_class'] = df.values   
         self.data['soil_class'] = df.values   
@@ -244,6 +252,49 @@ class PSD_Analysis():
 
         # self.psd_properties['sand_median_class'] = sand.values   
         return df
+
+    def filter_litho(self,
+                     treat_peat = False,
+                     verbose = False,
+                     write_ext_data = False):
+
+        """ function to filter samples into the three litho classes
+            with special adaption to treating peat samples            
+
+        """
+
+        lithoclasses_sand = ['zs1', 'zs2', 'zs3', 'zs4', 'zk']
+        lithoclasses_silt = ['lz1','lz3', 'ks4']
+        lithoclasses_clay = ['ks1', 'ks2', 'ks3','kz1', 'kz2', 'kz3']
+
+        df = pd.Series(data = np.zeros(len(self.psd.index)), dtype=str, name='litho_main')
+
+        if treat_peat:
+            lithoclasses_clay = ['ks1', 'ks2', 'ks3','kz1', 'kz2', 'kz3','p']
+
+        filter_sand = self.data.soil_class.isin(lithoclasses_sand)
+        filter_silt = self.data.soil_class.isin(lithoclasses_silt)
+        filter_clay = self.data.soil_class.isin(lithoclasses_clay)
+
+        df.iloc[filter_silt] = 'L'           
+        df.iloc[filter_sand] = 'Z'
+        df.iloc[filter_clay] = 'K'
+        
+        if verbose:
+            print("Number of samples categorized as sand:", np.sum(filter_sand))
+            print("Number of samples categorized as silt:", np.sum(filter_silt))
+            print("Number of samples categorized as clay:", np.sum(filter_clay))
+            if treat_peat:
+                print("Number of peat samples within category clay:", np.sum(self.data.soil_class.isin(['p'])))
+
+        self.psd_properties['litho_main'] = df.values   
+        self.data['litho_main'] = df.values   
+        
+        if write_ext_data:
+            self.extended_data_to_csv(file_data_ext = write_ext_data)    
+
+        return df
+
 
     def extended_data_to_csv(self,
                               file_data_ext = ".data_props.csv"
@@ -261,12 +312,13 @@ class PSD_Analysis():
        self.psd_properties.to_csv(file_psd_props,index = False)   
        print("\nPDS Properties saved to file: ",file_psd_props)
 
-    def sub_sample_soil_type(self,
-                             soil_type = 'sand',
-                             inplace = False,
-                             filter_props = False,
-                             verbose = True,
-                             ):
+
+    def sub_sample_litho(self,
+                        soil_type = 'sand',
+                        inplace = False,
+                        filter_props = False,
+                        verbose = True,
+                        ):
 
         """
             soil_type options:
@@ -277,20 +329,14 @@ class PSD_Analysis():
 
         self.soil_type = soil_type
         if self.soil_type == 'sand':
-            # soil_classes = ['Zs1', 'Zs2', 'Zs3', 'Zs4', 'Zk','Lz3']
-            # soil_classes = ['Zs1', 'Zs2', 'Zs3', 'Zs4', 'Zk']
-            soil_classes = ['zs1', 'zs2', 'zs3', 'zs4', 'zk']
+            filter_soil_type = self.data.litho_main.isin(['Z'])
         elif self.soil_type == 'clay':
-            # soil_classes = ['Ks1', 'Ks2', 'Ks3', 'Ks4']
-            soil_classes = ['ks1', 'ks2', 'ks3', 'ks4']
+            filter_soil_type = self.data.litho_main.isin(['K'])
         elif self.soil_type == 'silt':
-            # soil_classes = ['Lz1','Lz3', 'Kz1', 'Kz2', 'Kz3']
-            soil_classes = ['lz1','lz2','lz3', 'kz1', 'kz2', 'kz3']
+            filter_soil_type = self.data.litho_main.isin(['L'])
         else:
             print("WARNING: soil_type not in the list. \nSelect from: 'sand', 'clay', 'silt'.")
 
-        # filter_soil_type = self.psd_properties.soil_class.isin(soil_classes)
-        filter_soil_type = self.data.soil_class.isin(soil_classes)
         self.data_filtered = self.data.loc[filter_soil_type]
         if verbose:        
             print("Input data filtered to soil type: {}".format(self.soil_type))
@@ -307,13 +353,64 @@ class PSD_Analysis():
             #self.filter_psd_data()
         return self.data_filtered
 
+    # def sub_sample_soil_type(self,
+    #                          soil_type = 'sand',
+    #                          inplace = False,
+    #                          filter_props = False,
+    #                          verbose = True,
+    #                          ):
+
+    #     """
+    #         soil_type options:
+    #             - sand
+    #             - silt
+    #             - clay
+    #     """
+
+    #     self.soil_type = soil_type
+    #     if self.soil_type == 'sand':
+    #         # soil_classes = ['Zs1', 'Zs2', 'Zs3', 'Zs4', 'Zk','Lz3']
+    #         # soil_classes = ['Zs1', 'Zs2', 'Zs3', 'Zs4', 'Zk']
+    #         # soil_classes = ['zs1', 'zs2', 'zs3', 'zs4', 'zk']
+    #         soil_classes = self.settings['lithoclasses_sand']
+    #     elif self.soil_type == 'clay':
+    #         # soil_classes = ['Ks1', 'Ks2', 'Ks3', 'Ks4']
+    #         # soil_classes = ['ks1', 'ks2', 'ks3', 'ks4']
+    #         soil_classes = self.settings['lithoclasses_clay']
+    #     elif self.soil_type == 'silt':
+    #         # soil_classes = ['Lz1','Lz3', 'Kz1', 'Kz2', 'Kz3']
+    #         # soil_classes = ['lz1','lz2','lz3', 'kz1', 'kz2', 'kz3']
+    #         soil_classes = self.settings['lithoclasses_silt']
+
+    #     else:
+    #         print("WARNING: soil_type not in the list. \nSelect from: 'sand', 'clay', 'silt'.")
+
+
+    #     # filter_soil_type = self.psd_properties.soil_class.isin(soil_classes)
+    #     filter_soil_type = self.data.soil_class.isin(soil_classes)
+    #     self.data_filtered = self.data.loc[filter_soil_type]
+    #     if verbose:        
+    #         print("Input data filtered to soil type: {}".format(self.soil_type))
+    #         print("Number of samples in sub-set: {}".format(len(self.data_filtered)))
+
+    #     if filter_props:
+    #         self.psd_properties_filtered   = self.psd_properties.loc[filter_soil_type] 
+        
+    #     if inplace:
+    #         self.data = self.data_filtered
+    #         if filter_props:
+    #             self.psd_properties = self.psd_properties_filtered
+    #         self.psd = self.psd.loc[filter_soil_type]
+    #         #self.filter_psd_data()
+    #     return self.data_filtered
+
     def sub_sample_por(self,
                        inplace = False,
                        filter_props = False,
                        verbose = True,
                        ):
 
-        filter_por = self.data['porositeit'].notna()
+        filter_por = self.data['porosity'].notna()
         self.data_filtered = self.data.loc[filter_por]
         if verbose:        
             print("Input data filtered to samples with measured porosity")

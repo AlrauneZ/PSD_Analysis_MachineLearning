@@ -31,6 +31,8 @@ import skopt
 
 DEF_settings = dict(
         sieve_diam = [.00001,0.0001,0.0002,0.0005,.001,.002,.004,.008,.016,.025,.035,.05,.063,.075,.088,.105,.125,.150,.177,.21,.25,.3,.354,.42,.5,.6,.707,.85,1.,1.190,1.41,1.68,2], # in mm
+        soil_class_names_sort = ['zs1','zs2','zs3','zs4','zk','kz3','kz2','kz1','lz1','lz3','ks4', 'ks3','ks2', 'ks1','p']
+        # soil_class_names_sort = ['zs1','zs2','zs3','zs4','zk','kz3','kz2','kz1','lz1','lz3','ks4', 'ks3','ks2', 'ks1' ]
         )   
 
 class PSD_2K_ML(PSD_Analysis):
@@ -97,7 +99,7 @@ class PSD_2K_ML(PSD_Analysis):
         self.soil_type = soil_type            
         if self.soil_type in ['sand','silt','clay']:
             # function inheritated from PDS_Analysis
-            self.sub_sample_soil_type(soil_type = soil_type,
+            self.sub_sample_litho(soil_type = soil_type,
                                       inplace = True,
                                       filter_props = False,
                                       verbose = verbose,
@@ -138,16 +140,27 @@ class PSD_2K_ML(PSD_Analysis):
         return self.data
 
     def soil_class_specification(self,
+                                 sort = False,
                                  verbose = True):
-     
-        ### List of soil classes in data file 
-        self.soil_class_names = np.unique(self.data.soil_class)
+
+        soil_class_names = np.unique(self.data.soil_class)
+
         ### corresponds to:
-        # soil_class_names = ['Ks1', 'Ks2', 'Ks3', 'Ks4', 'Kz1', 'Kz2', 'Kz3', 'Lz1', 'Lz3', 'Zk', 'Zs1', 'Zs2', 'Zs3', 'Zs4']
+        # soil_class_names = ['ks1','ks2','ks3','ks4','kz1','kz2','kz3','lz1','lz3','zk','zs1','zs2','zs3','zs4','p']
 
         ### samples with number coded soil class name for color specification in plots
-        self.soil_class_sample = self.data.soil_class.astype('category').cat.codes
+        soil_class_sample = self.data.soil_class.astype('category').cat.codes
 
+        if sort:
+            soil_class_names_sort = self.settings['soil_class_names_sort']
+            map_list = [soil_class_names_sort.index(o) for o in soil_class_names]
+            self.soil_class_sample = [map_list[i] for i in soil_class_sample]#objects = [object_map[id] for id in ids]
+            self.soil_class_names = soil_class_names_sort
+            
+        else:
+            self.soil_class_names = soil_class_names
+            self.soil_class_sample = soil_class_sample
+            
         if verbose:        
             print("Soil classes of data (sub-)set: \n {}".format(self.soil_class_names))
 
@@ -309,7 +322,7 @@ class PSD_2K_ML(PSD_Analysis):
             self.feature_var = self.dX
         elif self.feature == 'dX_por':
             self.feature_var = self.dX.copy()
-            self.feature_var['porositeit'] = self.data.porositeit.values
+            self.feature_var['porosity'] = self.data.porosity.values
         else: 
             raise ValueError('Choice of feature variable not implemented.')
 
@@ -343,7 +356,7 @@ class PSD_2K_ML(PSD_Analysis):
             else:
                 self.target_var = self.data.Kf.values
         elif self.target == 'por':
-            self.target_var = self.data.porositeit.values
+            self.target_var = self.data.porosity.values
         else: 
             raise ValueError('Choice of feature variable not implemented.')
 
