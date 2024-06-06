@@ -28,10 +28,11 @@ class PSD_Analysis():
         self.settings.update(**settings_new)
 
 
-        self.data = data
+        # self.data = data
         if self.data is not None:
-            self.filter_psd_data()
-        
+            # self.filter_psd_data()
+            self.set_data(data)
+            
     def read_data(self,
                   filename,
                   **settings,               
@@ -52,25 +53,26 @@ class PSD_Analysis():
 
     def set_data(self,
                 data,
-                sieve_diam = False,
-                **kwargs,
+                **settings,
                 ):
-        
+
+        self.settings.update(**settings)       
         self.data = data
-        if sieve_diam:
-            self.settings['sieve_diam'] = sieve_diam
-        self.filter_psd_data(**kwargs)
+        self.filter_psd_data(**settings)
 
     def filter_psd_data(self,
-                        all_columns = False,
+                        sieve_classes = 'standard',
                         **kwargs):
 
-        if all_columns:
-            sieve_classes = self.data.columns[:] #self.data.columns[1:]
+        if sieve_classes == 'standard':
+            sieve_classes = self.data.columns[[x.startswith("F") for x in self.data.columns]]        
+        elif sieve_classes == 'all_columns':
+            sieve_classes = self.data.columns #self.data.columns[1:]
         else:
-            sieve_classes = self.data.columns[[x.startswith("F") for x in self.data.columns]]
-            
+            sieve_classes = sieve_classes
+        
         self.sieve_diam = np.array(self.settings['sieve_diam'])
+
         if len(self.sieve_diam)-1 != len(sieve_classes.values):
             print("WARNING: number of sieve classes does not match to pre-specified list of sieve diameters.")
             # print(len(self.sieve_diam)-1)

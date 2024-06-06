@@ -13,29 +13,50 @@ DEF_settings = dict( # HydroGeoSieve parameters
         T = 20, # deg C
         g = 980, # cm/s2 ## gravity constant at earth
         mD2SI = 1e-15 / 1.01325,
-        darcy2m2 = 9.869233e-13, 
+        darcy_to_m2 = 9.869233e-13, #darcy to m^2
+        millidarcy_to_cm2 = 9.86923e-12, #millidarcy to cm^2
+        m_per_day_to_cm_per_s = 100/( 60 * 60 * 24), # m/d to cm/s
+        cm_per_s_to_m_per_day = 864, # cm/s to m/d   
+        gpd_per_ft2_to_cm_per_s = 4.716e-5,
         sieve_diam = [.00001,0.0001,0.0002,0.0005,.001,.002,.004,.008,.016,.025,.035,.05,.063,.075,.088,.105,.125,.150,.177,.21,.25,.3,.354,.42,.5,.6,.707,.85,1.,1.190,1.41,1.68,2], # in mm
         )    
 
 class PSD_to_K_Empirical(PSD_Analysis):
-    
+    """
+        Class to calculate values of hyraulic conductivity from partical size distribution
+        data based on empirical formulas.
+        
+        All equations follow the general form:
+            
+        where
+        
+        Calculated hydraulic conductivities are in the unit m/d
+    """    
     def __init__(
           self,
           data = None,
-           **settings_new,
+          **settings_new,
           ):
-
-        self.data = data
 
         self.settings = copy.copy(DEF_settings)
         self.settings.update(**settings_new)
 
         if data is not None:
-            self.set_data() 
+            self.set_data(data,**settings_new) 
             # self.set_input_values()
         
     def set_input_values(self):        
+        
+        """
+        Function to calculate PSD derived values needed for in empirical formulas.
+        
 
+        Returns
+        -------
+        None.
+
+        """
+        
         self.calc_psd_diameters()
         self.calc_psd_parameters()
         self.calc_parameters()
@@ -48,14 +69,34 @@ class PSD_to_K_Empirical(PSD_Analysis):
         self.K_empirical = pd.DataFrame()
 
     def calc_parameters(self):
-        T = self.settings["T"]
 
+        """
+        Function to calculate setting parameters of the water for conversion 
+        of permeability to hydraulic conductivity.
+        
+        It determines temperature dependend value of
+            - water density "rho" [M/V]
+            - dynamic viscosity "mu" [M/(L*T)] 
+            - tau
+
+        And computes the conversion factor rho*g/mu from permeability to hyd. conductivity
+
+        Returns
+        -------
+        None.
+
+        """
+
+
+        T = self.settings["T"]
+        # T = 25
         rho = (3.1e-8 * T**3 - 7.0e-6 * T**2 + 4.19e-5 * T + 0.99985) # g/cm^3 # density of water #1000.*
         mu = (-7.0e-8 * T**3 + 1.002e-5 * T**2 - 5.7e-4 * T + 0.0178) # g/cm.s # viscosity of water
         tau = 1.093e-4 * T**2 + 2.102e-2 * T + 0.5889 #
 
-        self.rho_g_mu = rho * self.settings["g"] / mu
-
+        self.rho_g_mu = rho * self.settings["g"] / mu # 1/cm.s
+        # print(self.rho_g_mu)
+        
         self.settings.update(
             rho = rho,
             mu = mu, 
@@ -66,6 +107,17 @@ class PSD_to_K_Empirical(PSD_Analysis):
                      filename,
                      add_data = False,
                      ):
+        """
+        Function to write data frame with data and calculated hyd. conductivities
+        to a csv file.
+        
+
+        Returns
+        -------
+        None.
+
+        """
+        
         
         if add_data:
             df = pd.concat([self.data,self.K_empirical],axis = 1)
@@ -79,7 +131,14 @@ class PSD_to_K_Empirical(PSD_Analysis):
         """
         Calculation of hydraulic conductivity K from PSD 
         through empirical methods being applicable to all samples: 
-            "Barr","AlyamaniSen","Shepherd","vanBaaren","Kozeny"
+            "Barr","AlyamaniSen","Shepherd","vanBaaren","Bear_KozenyCarman"
+
+        Writes results to data frame.
+            
+        Returns
+        -------
+        Data frame with calculated Kf values for all samples.
+            
         """
         self.K_empirical = pd.DataFrame()
 
@@ -87,7 +146,7 @@ class PSD_to_K_Empirical(PSD_Analysis):
         self.AlyamaniSen(app=False,**kwargs)
         self.Shepherd(app=False,**kwargs)
         self.VanBaaren(app=False,**kwargs)
-        # self.Kozeny(app=False,**kwargs)
+        self.Bear_KozenyCarman(app=False,**kwargs)
         
         return self.K_empirical
 
@@ -99,7 +158,14 @@ class PSD_to_K_Empirical(PSD_Analysis):
         through empirical methods: "Hazen","Hazen_simplified","Slichter",
         "Terzaghi","Beyer","Sauerbreij","Krueger","KozenyCarman","Zunker",
         "Zamarin","USBR","Barr","AlyamaniSen","Chapuis","KrumbeinMonk",
-        "Shepherd","vanBaaren"
+        "Shepherd","vanBaaren","Bear_KozenyCarman"
+
+        Writes results to data frame.
+            
+        Returns
+        -------
+        Data frame with calculated Kf values for all samples.
+            
         """
 
         self.Hazen(**kwargs)
@@ -119,25 +185,53 @@ class PSD_to_K_Empirical(PSD_Analysis):
         self.KrumbeinMonk(**kwargs)
         self.Shepherd(**kwargs)
         self.VanBaaren(**kwargs)
-        self.Kozeny(**kwargs)
+        self.Bear_KozenyCarman(**kwargs)
         
         return self.K_empirical
 
-    def AlyamaniSen(self,
-                    phi_n_AlyamaniSen = 1.0,
-                    N_AlyamaniSen= 1300.,
+    def AlyamaniSen(self,   
+                    unit = 'cm_s',
                     app = True,
                     **kwargs): 
-        # Alyamani and Sen (1993) 0.000124
 
+        """ 
+        Function calculating Kf value of a PSD samples based on the method of
+        Alyamani and Sen (1993) following the equation
 
-        Io = -( 10. - ( 40./ ( self.d50 - self.d10 ) ) * self.d10 ) * ( self.d50 - self.d10 ) * 0.025
-        de  = ( Io + 0.025 * ( self.d50 - self.d10 ) )
+        Kf = 1300 (d_eff)^2 
+         
+        where Kf is the hydraulic conductivity in m/d
+              d_eff = is a method specific effective grain diameter in mm
+                       
+        Input
+        -------
+            app (Boolean) - key word specifying if applicability is provided
+            unit (str) - specification of unit (default cm/s)
+         
+        Returns
+        -------
+            Hydraulic conductivity value in cm/s (or alternatively m/d)
+            
+        """
 
-        # rho*g/mu factor omitted in Devlin code
-        K = N_AlyamaniSen * phi_n_AlyamaniSen * de**2 # in m/d
-        CF = 100. / ( 60 * 60 * 24 ) #mm/s
-        K = CF * K      
+        # components of general formula
+        phi_n_AlyamaniSen = 1.0
+        N_AlyamaniSen= 1300.
+
+        i0 = -0.025*( 10. -  40.*self.d10/( self.d50 - self.d10 ) ) * ( self.d50 - self.d10 ) 
+        #x-intercept (grain size) of a percent grain-retention curve plotted on arithmetic axes and focussing on data below 50% retained
+        de  = ( i0 + 0.025 * ( self.d50 - self.d10 ) ) # in mm
+        
+        K_m_d = N_AlyamaniSen * phi_n_AlyamaniSen * de**2 # in m/d 
+        K_cm_s = K_m_d * DEF_settings['m_per_day_to_cm_per_s']  #in cm/s     
+
+        if unit == 'cm_s':
+            K = K_cm_s
+        elif unit == 'm_d':
+            K = K_m_d
+        else:
+            raise ValueError("Specified unit is not implemented.")
+
         self.K_empirical['K_AlyamaniSen'] =  K
 
         if app:
@@ -147,25 +241,53 @@ class PSD_to_K_Empirical(PSD_Analysis):
         return K
 
     def Barr(self,
-             N_Barr = 0.00402,
-             # cs2 = 1.175,# for average between angular and spherical grains; 
-             # cs2 = 1.35, # for angular grains; 
-             #cs2 = 1.0, # for spherical grains
+             unit = 'cm_s',
              app = True,
+             cs = 1.175,
              **kwargs): 
-        # Barr (2001) 0.0000116
+        """ 
+        Function calculating Kf value of a PSD samples based on the method of
+        Barr (2001) according to Devlin, 2015 following the equation
 
-        #  N from Devlin code:
-        # Cs2 = 1 # spherical grains
-        # Cs2 = 1.35 # angular grains
-        # Cs2 = ( 1 + Cs2 ) / 2
-        # N = 1 / ( 36 * 5 * Cs2 )
+        Kf = N_Barr (d_10)^2 (n³ / (1- n)²
+         
+        where Kf is the hydraulic conductivity in cm/s
+              d10 = grain size of 10\% weight passing in (cm)
+              n = porosity (-)
+              N_Barr (int) - method specific constant
 
-        # N_Barr = 1./(36*5*cs2)
+        N_Barr is a function of cs with:
+              cs2 = 1 for for spherical grains
+              cs2 = 1.35  for angular grains
+              cs = 1.175 as average between angular and spherical grains --> default
+                                      
+        Input
+        -------
+            app (Boolean) - key word specifying if applicability is provided
+            unit (str) - specification of unit (default cm/s)
+            cs 
+         
+        Returns
+        -------
+            Hydraulic conductivity value in cm/s (or alternatively m/d)
+            
+        """
 
+        # components of general formula
+        N_Barr = 1./(36*5*cs**2)
         phi_n = self.por**3 / ( 1 - self.por )**2
-        de = 0.1*self.d10
-        K = self.rho_g_mu * N_Barr * phi_n * ( de )**2   
+        de = 0.1*self.d10 #d10 given in mm --> transform to cm
+
+        K_cm_s = self.rho_g_mu * N_Barr * phi_n * ( de )**2   #in cm/s  
+        K_m_d = K_cm_s * DEF_settings['cm_per_s_to_m_per_day']  #in m/d     
+
+        if unit == 'cm_s':
+            K = K_cm_s
+        elif unit == 'm_d':
+            K = K_m_d
+        else:
+            raise ValueError("Specified unit is not implemented.")
+
         self.K_empirical['K_Barr'] =  K
 
         if app:
@@ -173,6 +295,195 @@ class PSD_to_K_Empirical(PSD_Analysis):
         # self.K_empirical['de_Barr'] =  de
 
         return K
+
+    def Bear_KozenyCarman(self,
+               unit = 'cm_s',
+               app = True,
+               **kwargs):
+        
+        """ 
+        Function calculating Kf value of a PSD samples based on the 
+        Kozeny-Carman method according to Bear, 1972 following the equation
+        
+            kc = 5.53 (d_10)^2 (n³ / (1- n)²
+
+        where kc is the permeability in (mD = milliDarcy)
+              d10 = grain size of 10\% weight passing in (μm)
+              n = porosity (-)
+
+        Input
+        -------
+            app (Boolean) - key word specifying if applicability is provided
+            unit (str) - specification of unit (default cm/s)
+
+        Returns
+        -------
+            Hydraulic conductivity value in cm/s (or alternatively m/d)
+            
+        """
+
+        # components of general formula
+        N_BKC = 5.53 #method specific constant
+        phi_n = self.por**3 / ( ( 1 - self.por )**2 )
+        de = 1000*self.d10 # d10 given in mm --> transform to micrometer
+
+        # permeability in millidarcy as given in Bear
+        kmd  = N_BKC*de**2*phi_n 
+
+        K_cm_s =kmd*self.rho_g_mu*DEF_settings['millidarcy_to_cm2'] # from milliDarcy to cm/s (perm --> cond)
+        K_m_d = K_cm_s*DEF_settings['cm_per_s_to_m_per_day'] # from cm/s --> m/d
+
+        # K_cm_s = 0.005458*(0.1*self.d10)**2  *phi_n *self.rho_g_mu
+
+        if unit == 'cm_s':
+            K = K_cm_s
+        elif unit == 'm_d':
+            K = K_m_d
+        else:
+            raise ValueError("Specified unit is not implemented.")
+            
+        self.K_empirical['K_Bear_KozenyCarman'] =  K
+        if app:
+            self.K_empirical['app_Bear_KozenyCarman'] =  1
+        # self.K_empirical['de_Kozeny'] =  de
+
+        return K
+
+    def Shepherd(self,
+                 sand_type = 'channel',
+                 unit = 'cm_s',
+                 app = True,
+                 **kwargs):
+
+        """ 
+        Function calculating Kf value of a PSD samples based on the 
+        method described by Shepherd, 1989 following the equation
+            K = 3500 d_50^1.65 
+
+        where K is the permeability/hydraulic conductivity in gpd/ft^2
+              d50 = grain size of 50\% weight passing in (mm)
+
+        transformed to SI-units:
+            K = 0.165 d_50^1.65 
+
+        where K is the hydraulic conductivity in cm/s
+              d50 = grain size of 50\% weight passing in (mm)
+
+
+        Input
+        -------
+            sand_type (str) - specification of media type, default is 'channel'
+            app (Boolean) - key word specifying if applicability is provided
+            unit (str) - specification of unit (default cm/s)
+
+        Returns
+        -------
+            Hydraulic conductivity value in cm/s (or alternatively m/d)
+            
+        """
+
+        if sand_type == 'channel':
+            N = 0.16506 # channel, default
+            r = 1.65 # channel, default
+            # N =  3500*DEF_settings['gpd_per_ft2_to_cm_per_s'] 
+            # N =  142.6*DEF_settings['m_per_d_to_cm_per_s'] 
+        elif sand_type == 'beach':
+            N = 0.56592 # beach sand
+            r = 1.75 # beach
+            # N =  12000*DEF_settings['gpd_per_ft2_to_cm_per_s'] 
+            # N =  488.95488*DEF_settings['m_per_d_to_cm_per_s'] 
+
+        elif sand_type == 'dune':
+            N = 1.8864 # dune sand
+            r = 1.85 # dune
+            # N =  40000*DEF_settings['gpd_per_ft2_to_cm_per_s'] 
+            # N = 1629.8496*DEF_settings['m_per_d_to_cm_per_s'] 
+
+        K_cm_s = N * self.d50**r # cm/s
+        K_m_d = K_cm_s*DEF_settings['cm_per_s_to_m_per_day'] # from cm/s --> m/d
+
+        if unit == 'cm_s':
+            K = K_cm_s
+        elif unit == 'm_d':
+            K = K_m_d
+        else:
+            raise ValueError("Specified unit is not implemented.")
+            
+        self.K_empirical['K_Shepherd'] =  K
+       
+        if app:
+            de = self.d50**(0.5*r) # de in mm 
+            # de = self.d50 # de in mm 
+            cond =  (de > 0.0063)*(de < 2)
+            # cond = (6.3 < de)*(de < 2000)
+            self.K_empirical['app_Shepherd'] = np.where( cond,1,0)
+
+        return K
+
+    def VanBaaren(self,
+                  m = 1.5,
+                  c = 0.85,
+                  unit = 'cm_s',
+                  app = True,
+                  **kwargs): 
+
+        """ 
+        Function calculating Kf value of a PSD samples based on the method of
+        Van Baaren (1979) following the equation
+
+             k = 10 d_dom^2 C^{-3.64}  n^{m+3.64}
+
+        where k is the permeability in (mD = milliDarcy)
+            d_dom = the dominant grain size in (μm)
+            n = porosity (-)         
+            c = sorting factor
+            m = cementation factor (1.4 for unsonsolidated, 2.0 for very hard sandstone)
+                       
+        Input
+        -------
+            m (float) - cementation factor 1.4<m<2 (default 1.5)
+            c (float) - sorting factor 0.7<c<1 (default 0.85)
+            app (Boolean) - key word specifying if applicability is provided
+            unit (str) - specification of unit (default cm/s)
+         
+        Returns
+        -------
+            Hydraulic conductivity value in cm/s (or alternatively m/d)
+            
+        """
+
+        # components of general formula
+        if c is None:
+            c = 35.93 * ( np.log10(self.psd_properties['d60']) - np.log10(self.d10) ) / ( 60 - 10 ) + 0.63
+        N_Baaren = c**(-3.64)*1e7*DEF_settings['millidarcy_to_cm2']  #method specific constant
+        phi_n = self.por**(m + 3.64)
+        de = self.psd_properties['d_dom']  # d_dom given in mm --> transform to micrometer
+
+        K_cm_s =N_Baaren*de**2*phi_n*self.rho_g_mu # in cm/s (perm --> cond)
+        K_m_d = K_cm_s*DEF_settings['cm_per_s_to_m_per_day'] # from cm/s --> m/d
+
+
+        # N_Baaren_mD = 10 * c**(-3.64) #method specific constant
+        # de = 1000*self.psd_properties['d_dom']  # d_dom given in mm --> transform to micrometer
+        # permeability in millidarcy
+        # kmd  = N_Baaren_mD*de**2*phi_n # mD
+        # K_cm_s =kmd*self.rho_g_mu*DEF_settings['millidarcy_to_cm2'] # from milliDarcy to cm/s (perm --> cond)
+
+
+        if unit == 'cm_s':
+            K = K_cm_s
+        elif unit == 'm_d':
+            K = K_m_d
+        else:
+            raise ValueError("Specified unit is not implemented.")
+
+        self.K_empirical['K_VanBaaren'] =  K
+
+        if app:
+            self.K_empirical['app_VanBaaren'] =  1
+             
+        return K
+
 
     def Beyer(self,
               phi_n_Beyer = 1,
@@ -269,34 +580,7 @@ class PSD_to_K_Empirical(PSD_Analysis):
 
         return K
 
-    def Kozeny(self,
-               N_Ko = 5530000,
-               app = True,
-               **kwargs):
-        ##Kozeny
-        ### TODO: check units --> here is something off
-
-        phi_n = self.por**3 / ( ( 1 - self.por )**2 )
-        de = 0.1*self.d10
-        #K  = self.rho_g_mu* N_Ko* de**2 *phi_n * (10000*self.settings['darcy2m2'])*(60*60*24)/100        
     
-        Kmd  = 5.53*(1000.*de)**2*phi_n
-        K = Kmd * self.settings['darcy2m2']*(Kmd/1000) *10000 * self.rho_g_mu #[m^2 -> cm^2 -> cm^2 * 1/(cm s) --> cm/s]
-
-        K  = self.rho_g_mu* N_Ko* de**2 *phi_n * 10*self.settings['darcy2m2']
-
-        # k = 5.53*(1000*d10)**2 
-        # K = (k/1000)*(100*100*darcy2m2)*rho_g_mu
-        # CF = (60*60*24)/100
-        # K = CF*K
-    
-        self.K_empirical['K_Kozeny'] =  K
-
-        if app:
-            self.K_empirical['app_Kozeny'] =  1
-        # self.K_empirical['de_Kozeny'] =  de
-
-        return K
 
     def KozenyCarman(self,
                      N_KoCa = 8.3e-3,
@@ -418,41 +702,6 @@ class PSD_to_K_Empirical(PSD_Analysis):
 
         return K
 
-    def Shepherd(self,
-                 phi_n = 1,
-                 sand_type = 'channel',
-                 app = True,
-                 **kwargs):
-
-        # Shepherd (1989) 0.00277
-
-        if sand_type == 'channel':
-            N = 142.8 # channel, default
-            r = 1.65 # channel, default
-        elif sand_type == 'beach':
-            N = 489.6 # beach sand
-            r = 1.75 # beach
-        elif sand_type == 'dune':
-            N = 1632 # dune sand
-            r = 1.85 # dune
-
-        # devlin code, term containing C should be 142.8 @20 grC
-        # N = 142.8  / self.rho_g_mu
-
-        de = self.d50**(0.5*r)
-        # K = self.rho_g_mu * N * phi_n * de**2 # m/d
-        K = N * phi_n * de**2 # m/d
-        K = (100 / ( 60 * 60 * 24 ) ) * K # cm/s
-        self.K_empirical['K_Shepherd'] =  K
-       
-        # applicability      
-        if app:
-            cond =  (de > 0.0063)*(de < 2)
-            # cond = (6.3 < de)*(de < 2000)
-            self.K_empirical['app_Shepherd'] = np.where( cond,1,0)
-        # self.K_empirical['de_Shepherd'] =  de
-        
-        return K
 
     def Slichter(self,
                  N_Slichter = 1e-2,
@@ -520,35 +769,6 @@ class PSD_to_K_Empirical(PSD_Analysis):
 
         return K
 
-    def VanBaaren(self,
-                  m = 1.5,
-                  app = True,
-                  **kwargs):
-        # van Baaren (in mD, grain sizes in mu)
-
-        # correct phi for fine silt percentage to get effective porosity - or do we assume that we already have effective porosity???
-
-        n_cor = self.psd_properties['por'] 
-        # cementation factor m 1.4 for unsonsolidated, 2.0 for very hard sandstone
-        
-        # sorting factor C 1 for poorly sorted, 0.7 for extremely well sorted
-        # C = 0.87
-        C = 35.93 * ( np.log10(self.psd_properties['d60']) - np.log10(self.psd_properties['d10']) ) / ( 60. - 10. ) + 0.63
-    
-        #print (n_cor)
-        k = 10 * (1000 * self.psd_properties['d_dom'] )**2 * C**(-3.64) * n_cor**(m + 3.64) # mD
-        #print ("K mD",K)
-        K = 100 * ( k / 1000 ) * self.settings['darcy2m2'] * self.rho_g_mu # in cm/s
-        # van Baaren reduction factor for clay
-        # f_vb = ( 1 - (1000 * d16 ) / n )**(m + 3.64)
-        self.K_empirical['K_VanBaaren'] =  K
-
-        if app:
-            self.K_empirical['app_VanBaaren'] =  1
-        # de = 0 #0.1*self.d10
-        # self.K_empirical['de_VanBaaren'] =  de
-             
-        return K
 
     def Zamarin(self,
                 N_Zamarin = 8.65e-3,

@@ -8,19 +8,14 @@ import numpy as np
 
 plt.close('all')
 
-soil_type =  'por' # 'topall' #'clay' #''silt'#'sand' #
-feature = 'dX' #'PSD' #'dX_por' #
-target = 'Kf' #'por' # #
+soil_type ='por' #'topall' #  'sand' # 'clay' #'silt'#
+feature = 'PSD' #'dX_por' #'dX' #
+target = 'por' # #'Kf' #
 
 algorithms = ['DT','RF','XG','LR','SVR','ANN']
 data_sets =['full_set','training_set','testing_set' ] #['full_set'] #
 titles = ['full set (100%)','training set (80%)','testing set (20%)' ] #['full_set'] #
 # verbose = True #False #
-
-text = r"$d_X$ $\rightarrow$ $K_f$"
-# text = r"$d_X$ & $\theta$ $\rightarrow$ $K_f$"
-# text = r"PSD $\rightarrow$ $K_f$"
-# text = r"PSD $\rightarrow$ $\theta$"
 
 print('\n###############################################')
 print(' Visualization of Training and Test Performance')
@@ -78,16 +73,36 @@ for j,data_set in enumerate(data_sets):
     ax[j].set_title("{}".format(titles[j]),fontsize=textsize)
     # ax[j].set_title("{}".format(data_set),fontsize=textsize)
 
-# ax[0].text(-0.05,1.1,'Top-all',
-ax[0].text(-0.15,1.1,text,
-            fontsize=textsize+1, transform=ax[0].transAxes,
-            bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
 
-# ax[1].text(-0.1,1.1,'Top-all',
-ax[1].text(-0.15,1.1,'Top-{}'.format(soil_type),
-            fontsize=textsize+1, transform=ax[1].transAxes,
-            bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
+if feature == 'PSD' and target == 'Kf' and soil_type != 'por':  
+    ax[0].text(-0.15,1.1,'Top-{}'.format(soil_type),
+                fontsize=textsize+1, transform=ax[0].transAxes,
+                bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))    
+else:
+    file_fig = '../results/SI_Fig_Scatter_Measured_{}_{}'.format(feature,target)
 
+    if feature == 'dX' and target == 'Kf': 
+        text = r"$d_X$ $\rightarrow$ $K_f$"
+    elif feature == 'dX_por' and target == 'Kf': 
+        text = r"$d_X$ & $\theta$ $\rightarrow$ $K_f$"
+    elif feature == 'PSD' and target == 'Kf': 
+        text = r"PSD $\rightarrow$ $K_f$"
+    elif feature == 'PSD' and target == 'por': 
+        text = r"PSD $\rightarrow$ $\theta$"
+
+    # ax[0].text(-0.05,1.1,'Top-all',
+    ax[0].text(-0.15,1.1,text, #'{} --> {}'.format(feature,target),
+                fontsize=textsize+1, transform=ax[0].transAxes,
+                bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
+
+    if soil_type == 'topall':
+        text_soil = 'Top-All'
+    else:
+        text_soil = 'Top-{}'.format(soil_type)
+
+    ax[1].text(-0.15,1.1,text_soil,
+                fontsize=textsize+1, transform=ax[1].transAxes,
+                bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
 
 ax[0].set_ylabel(r"$NSE$",fontsize=textsize)
 plt.tight_layout()

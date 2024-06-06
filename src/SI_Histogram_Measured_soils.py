@@ -18,8 +18,14 @@ plt.close('all')
 # file_data = "../data/data_PSD_Kf_por.csv"
 file_data = "../data/data_PSD_Kf_por_props.csv"
 
-soil_types = ['all','sand','silt','clay']
-colors = ['goldenrod','C0','C2','C3']
+soil_types = ['all','silt','sand','clay']
+colors = ['C0','C3','goldenrod','C2']
+
+# soil_types = ['all','silt','sand','clay']
+# colors = ['goldenrod','C2','C0','C3']
+
+# soil_types = ['all','sand','silt','clay']
+# colors = ['goldenrod','C0','C2','C3']
 
 # =============================================================================
 # Load Data and perform data analysis
@@ -52,7 +58,7 @@ for i in range(0,4):
     if i ==0:
         data_filtered  = Analysis.data
     else:
-        data_filtered =  Analysis.sub_sample_soil_type(
+        data_filtered =  Analysis.sub_sample_litho(
                                 soil_type = soil_types[i],
                                 inplace = False)                
 

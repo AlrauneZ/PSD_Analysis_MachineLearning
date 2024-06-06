@@ -13,31 +13,18 @@ plt.close('all')
 
 ### algorithms to plot (and their order)
 algs = ["DT", "RF", "XG", "LR", "SVR", "ANN"]
-soil_type = 'por' #'silt'#'clay' # 'sand' #
-feature ='PSD' # 'dX_por' 
-target =  'Kf' #
+soil_type ='por'
+feature = 'PSD' 
+target =  'por' 
 verbose = True #False #
-
-lithoclasses = dict(
-    por = ['zs1', 'zs2', 'zs3', 'zs4', 'zk'],
-    sand = ['zs1', 'zs2', 'zs3', 'zs4', 'zk'],
-    silt = ['lz1','lz3', 'ks4'],
-    clay =['kz3','kz2','kz1', 'ks3','ks2', 'ks1','p'],
-    )
 
 ### ===========================================================================
 ### Set file pathes and names
 ### plot specifications
 ### ===========================================================================
-
-
+  
 file_data = "../data/data_PSD_Kf_por_props.csv"
-if feature == 'PSD' and target == 'Kf': 
-    file_fig = '../results/SI_Fig_Scatter_Measured_{}'.format(soil_type)
-    text = 'Top - {}'.format(soil_type)
-else:
-    file_fig = '../results/SI_Fig_Scatter_Measured_{}_{}'.format(feature,target)
-    text = '{} --> {}'.format(feature,target)
+file_fig = '../results/SI_Fig_Scatter_Measured_{}_{}'.format(feature,target)
 
 textsize = 8
 markersize = 2
@@ -53,12 +40,7 @@ print("###########################################")
 ### Speficy Algorithm and set target and feature variables, run training
 ### ===========================================================================
 
-# =============================================================================
-### plot specifications
-# Create a subplot for each model's comparison plot
-
-# fig, axs = plt.subplots(nrows=3, ncols=2, figsize=(7.5, 9), 
-fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(7.5, 5.25), 
+fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(7.5, 4.9), 
                         sharex = True, sharey = True)##, layout='constrained')
 axs = axs.ravel()
 
@@ -83,9 +65,7 @@ for i,algorithm in enumerate(algs):
     k_min,k_max = np.min(Analysis.target_var),np.max(Analysis.target_var)
     
     ### specify AI algorithm
-    Analysis.set_algorithm(
-        # algorith = algorithm, 
-        verbose = verbose)
+    Analysis.set_algorithm(verbose = verbose)
     
     ### specifying feature (input) and target (output) variables
     Analysis.set_feature_variables()#scale = False)
@@ -99,23 +79,17 @@ for i,algorithm in enumerate(algs):
     bc5,pc5 = Analysis.quantiles_4_plot(bins=10,nth=5)
     bc95,pc95 = Analysis.quantiles_4_plot(bins=10,nth=95)
 
-# Plot the actual and predicted values for each model
-# for i,algorithm in enumerate(algs):
-
     scatter = axs[i].scatter(
         x = Analysis.y_obs,
         y = Analysis.y_pred, 
-        c = soil_class_sample, 
-        cmap= 'Spectral',
-        vmin = 0, 
-        vmax = 14,
+        c = 'chocolate', 
         marker='.', 
         s= markersize,
         label=algorithm,
         zorder = 2)
 
-    axs[i].set_xlabel("$\log_{10}(K_{obs}$ [m/d])",fontsize=textsize)
-    axs[i].set_ylabel("$\log_{10}(K_{pred}$ [m/d])",fontsize=textsize)
+    axs[i].set_xlabel(r"$\theta_{obs}$",fontsize=textsize)
+    axs[i].set_ylabel(r"$\theta_{pred}$",fontsize=textsize)
     axs[i].grid(True, zorder = 1)
     axs[i].tick_params(axis="both",which="major",labelsize=textsize)
 
@@ -123,7 +97,7 @@ for i,algorithm in enumerate(algs):
     axs[i].plot(bc5,pc5,'--',c = 'k',zorder=3)
     axs[i].plot(bc95,pc95,'--', c = 'k', zorder = 3)
     ### one-by-one line of 
-    axs[i].plot(Analysis.y_test,Analysis.y_test,':', c="grey")
+    axs[i].plot(Analysis.target_var,Analysis.target_var,':', c="grey")
     axs[i].set_xlim([k_min-0.01,k_max+0.01])
     axs[i].set_ylim([k_min-0.01,k_max+0.01])
     axs[i].text(0.1,0.89,'({}) {}'.format(figure_text[i],algorithm),
@@ -134,24 +108,9 @@ for i,algorithm in enumerate(algs):
                 fontsize=textsize, transform=axs[i].transAxes,
                 bbox = dict(boxstyle='round', facecolor='white'))
 
-
-axs[0].text(-0.05,1.1,text,
-# axs[0].text(-0.05,1.1,'Top - {}'.format(soil_type),
+axs[0].text(-0.05,1.1,'{} --> {}'.format(feature,target),
             fontsize=textsize+1, transform=axs[0].transAxes,
             bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
 
-fig.subplots_adjust(bottom=.16)
-fig.legend(handles=scatter.legend_elements()[0], 
-            labels = lithoclasses[soil_type], 
-            loc='lower center', 
-            ncol=7, 
-            # bbox_to_anchor=(1, 0.1),             
-            prop={'size': textsize},#,fontsize=textsize,
-            bbox_transform=fig.transFigure,
-#            columnspacing=1.0,
-#            title = "lithoclasses",
-            )
-
-### plt.tight_layout()
-# plt.savefig(file_fig+'.png',dpi = 300)
+plt.tight_layout()
 plt.savefig(file_fig+'.pdf')

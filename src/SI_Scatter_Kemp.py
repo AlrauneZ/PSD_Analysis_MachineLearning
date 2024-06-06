@@ -34,6 +34,12 @@ Kemp_values = pd.DataFrame(data, columns=Kemp_cols)
 soil_class_sample = data.soil_class.astype('category').cat.codes
 soil_class_names = np.unique(data.soil_class)
 
+soil_class_names_sort = ['zs1','zs2','zs3','zs4','zk','kz3','kz2','kz1','lz1','lz3','ks4', 'ks3','ks2', 'ks1','p' ]
+map_list = [soil_class_names_sort.index(o) for o in soil_class_names]
+
+soil_class_sample = [map_list[i] for i in soil_class_sample]#objects = [object_map[id] for id in ids]
+soil_class_names = soil_class_names_sort
+
 k_min,k_max = np.min(np.log10(data['Kf'])),np.max(np.log10(data['Kf']))
 
 # =============================================================================
@@ -48,26 +54,29 @@ markersize = 10 #2
 figure_text = ['a','b','c','d','e']
 
 # fig, axs = plt.subplots(nrows=3, ncols=2, figsize=(7.5, 9), 
-fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(7.5, 5), 
+fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(7.5, 7.5), 
                         sharex = True, sharey = True)##, layout='constrained')
 axs = axs.ravel()
 
 # Plot the actual and predicted values for each model
-for i in range(len(Kemp_cols)):    
+# for i in range(len(Kemp_cols)):    
+for i in range(4):    
     ### select empirical method
-    print("Scatter plot for empirical method: {}".format(Kemp_values.columns[i][2:]))
-    logKf_emp = np.log10(100*Kemp_values.iloc[:,i])
-    r2_Kemp_measured = r2_score(np.log10(data['Kf']),logKf_emp)
+    print("Scatter plot for empirical method: {}".format(Kemp_values.columns[i+1][2:]))
+    logKf_emp = np.log10(864*Kemp_values.iloc[:,i+1]) # empirical values in cm/s --> m/d
+    # logKf_emp = np.log10(100*Kemp_values.iloc[:,i+1]) # empirical values in cm/d
+    r2_Kemp_measured = r2_score(np.log10(data['Kf']),logKf_emp)  # measured values in m/d
 
     scatter = axs[i].scatter(
         x = np.log10(data['Kf']),
-        y = np.log10(100*Kemp_values.iloc[:,i]), 
+        y = np.log10(100*Kemp_values.iloc[:,i+1]), 
         c = soil_class_sample, 
         cmap= 'Spectral', 
         # cmap= cmap, 
         marker='.', 
         s= markersize,
         zorder = 2)
+
 
     axs[i].set_xlabel("$\log_{10}(K_{obs}$ [m/d])",fontsize=textsize)
     axs[i].set_ylabel("$\log_{10}(K_{emp}$ [m/d])",fontsize=textsize)
@@ -82,15 +91,17 @@ for i in range(len(Kemp_cols)):
 
     # axs[i].set_xlim([2e-8,2e2])
     # axs[i].set_ylim([2e-8,2e2])
-    axs[i].set_xlim([0.95*k_min,1.05*k_max+0.01])
-    axs[i].set_ylim([0.95*k_min,1.05*k_max+0.01])
+    axs[i].set_xlim([-7,1.05*k_max+0.01])
+    axs[i].set_ylim([-7,1.05*k_max+0.01])
+    # axs[i].set_xlim([0.9*k_min,1.05*k_max+0.01])
+    # axs[i].set_ylim([0.9*k_min,1.05*k_max+0.01])
     # axs[i].set_xlim([k_min-0.01,k_max+0.01])
     # axs[i].set_ylim([k_min-0.01,k_max+0.01])
 
     #plt.axis("equal")
     # axs[i].set_title('({}) {}'.format(figure_text[i],Kemp_values.columns[i][2:]),fontsize=textsize)
 
-    axs[i].text(0.1,0.9,'({}) {}'.format(figure_text[i],Kemp_values.columns[i][2:]),
+    axs[i].text(0.1,0.9,'({}) {}'.format(figure_text[i],Kemp_values.columns[i+1][2:]),
                 fontsize=textsize, transform=axs[i].transAxes,
                 bbox = dict(boxstyle='round', facecolor='white'))
 
@@ -99,16 +110,16 @@ for i in range(len(Kemp_cols)):
                 bbox = dict(boxstyle='round', facecolor='white'))
 
 # fig.delaxes(axs[-1])
-fig.subplots_adjust(bottom=.18)
-fig.legend(handles=scatter.legend_elements()[0], 
+fig.subplots_adjust(bottom=.12)
+fig.legend(handles=scatter.legend_elements(num=len(soil_class_names))[0], 
             labels=list(soil_class_names), 
             loc='lower center', 
-            ncol=7, 
+            ncol=8, 
             # bbox_to_anchor=(0.78, 0.15),             
             prop={'size': textsize},#,fontsize=textsize,
             bbox_transform=fig.transFigure,
 #            columnspacing=1.0,
-            # title = "soil classes",
+            # title = "lithoclasses",
             )
 
 ### plt.tight_layout()

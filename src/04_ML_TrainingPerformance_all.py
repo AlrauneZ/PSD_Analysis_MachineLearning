@@ -11,9 +11,9 @@ import pandas as pd
 import PSD_2K_ML
 
 
-soil_type = 'por'# 'clay' #'silt' #'sand' #'topall'## ''full' #
-feature ='PSD' # 'dX_por' #'dX' #
-target = 'por' # #'Kf' #
+soil_type = 'por'# 'clay' #'silt' #'sand' ### ''full' #'topall' #
+feature ='dX' #'PSD' # 'dX_por' #
+target = 'Kf' #'por' # #
 
 algorithms = ['DT','RF','XG','LR','SVR','ANN']
 sets = ['training_set','testing_set','full_set']
