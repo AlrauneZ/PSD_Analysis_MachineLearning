@@ -1,6 +1,10 @@
+[![DOI](https://zenodo.org/badge/302602074.svg)](https://zenodo.org/doi/10.5281/zenodo.4134626)
+
 # PSD Analysis using Machine Learning to identify hydraulic conductivity
 
-This repository provides routines to perform particle size distribution (PSD) analysis, particularly workflows to estimate hydraulic conductivity with six Machine Learning (ML) algorithms:
+This repository accompanies the manuscript "Predicting Saturated Hydraulic Conductivity from Particle Size Distributions using Machine Learning" (submitted/under revision). 
+
+The repository provides routines to perform particle size distribution (PSD) analysis, particularly workflows to estimate hydraulic conductivity with six Machine Learning (ML) algorithms:
 - Decision Tree (DT)
 - Random Forest (RF)
 - XGBoost (XG)
