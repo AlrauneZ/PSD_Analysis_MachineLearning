@@ -1,59 +1,52 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar  5 14:57:23 2024
+Script reproducing Figure of the supporting information on the feature 
+importance of all ML algorithms comparing impact of each PSD size 
+category on the algorithm performance to predict Kf for the top-all data sets.
 
-@author: alraune
+Feature importance evaluation based on the method implemented in the class
+PSD_2K_ML which is based on the routine "permutation_importance" from sklearn.
+
+Author: A. Zech
 """
 
 import PSD_2K_ML
 import numpy as np
 import matplotlib.pyplot as plt
-
 plt.close('all')
 
-### algorithms to plot (and their order)
-algs = ["DT", "RF", "XG", "LR", "SVR", "ANN"]
+### ===========================================================================
+### Key words to specify modus of script:
+### ===========================================================================
 
+algs = ["DT", "RF", "XG", "LR", "SVR", "ANN"]
 soil_type ='topall' #'por' # #  'clay' #'silt'#'sand' #
 feature = 'PSD' #'dX_por' #'dX' #
 target = 'Kf' # 'por' #
 verbose = True #False #
 
 ### ===========================================================================
-### Set file pathes and names
-### plot specifications
+### Set file pathes and names & plot specifications
 ### ===========================================================================
   
 file_data = "../data/data_PSD_Kf_por_props.csv"
-file_fig = '../results/SI_Fig_FeatureImportance_topall'
-
+file_fig = '../results/Figures_SI/SI_Fig_FeatureImportance_topall2'
 textsize = 8
 figure_text = ['a','b','c','d','e','f']
 colors = ['C0','C1','C2','C3','C4','C5'] #mcolors.TABLEAU_COLORS #['lightblue', 'blue', 'purple', 'red', 'black']
 
-
 # =============================================================================
 # Load Data and perform Algorithm fitting to produce predictions
 # =============================================================================
+
 print("Training and Prediction of all 6 algorithms")
 print("###########################################")
 
-### ===========================================================================
-### Speficy Algorithm and set target and feature variables, run training
-### ===========================================================================
-
-# =============================================================================
-### plot specifications
-# Create a subplot for each model's comparison plot
-
-# fig, axs = plt.subplots(nrows=3, ncols=2, figsize=(7.5, 9), 
 fig, axs = plt.subplots(nrows=3, ncols=2, figsize=(7.5,7.5), sharex = True) #, sharey = True)##, layout='constrained')
 axs = axs.ravel()
 
-# Plot the actual and predicted values for each model
 for i,algorithm in enumerate(algs):
-# for i,algorithm in enumerate(['LR']):
     print("\n###########################################")
     print("Training and Prediction of {}".format(algorithm))
     Analysis = PSD_2K_ML.PSD_2K_ML(
@@ -70,36 +63,22 @@ for i,algorithm in enumerate(algs):
     Analysis.set_target_variables()
     soil_class_names,soil_class_sample = Analysis.soil_class_specification()
     k_min,k_max = np.min(Analysis.target_var),np.max(Analysis.target_var)
-    
-    ### specify AI algorithm
-    Analysis.set_algorithm(
-        # algorith = algorithm, 
-        verbose = verbose)
-    
-    ### specifying feature (input) and target (output) variables
-    Analysis.set_feature_variables()#scale = False)
+    Analysis.set_algorithm(verbose = verbose)
+    Analysis.set_feature_variables()
     Analysis.data_split()
-    
     Analysis.training(verbose = verbose)
-    ### determine prediction data on trained algorithm for specified data set
     Analysis.prediction(x_pred = 'full_set',verbose = verbose)
     
-
-# for i,algorithm in enumerate(algs):
     importances_mean,importances_std = Analysis.feature_importance()
-
     importances_mean.plot.bar(yerr= importances_std, color = colors, ax=axs[i])
 
     axs[i].set_ylabel("Mean accuracy decrease",fontsize=textsize)
     axs[i].set_xlabel("Features: Sieve size ranges in mm",fontsize=textsize)
-    # axs[1].grid(True, zorder = 1)
     axs[i].tick_params(axis="y",which="major",labelsize=textsize)
     axs[i].tick_params(axis="x",which="major",labelsize=textsize-1)
     axs[i].text(0.05,0.9,'({}) {}'.format(figure_text[i],algorithm),
                 fontsize=textsize, transform=axs[i].transAxes,
                 bbox = dict(boxstyle='round', facecolor='white'))
 
-
 plt.tight_layout()
-# plt.savefig(file_fig+'.png',dpi = 300)
 plt.savefig(file_fig+'.pdf')

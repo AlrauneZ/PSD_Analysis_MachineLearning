@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Mar  5 14:57:23 2024
 
-@author: alraune
+"""
+Script reproducing Figure of the supporting information containing scatter 
+plots comparing porosity estimates of all 6 algorithms to measured porosity
+for those samples where available (Top-por).
+
+Author: A. Zech
 """
 
 import PSD_2K_ML
@@ -11,7 +14,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.close('all')
 
-### algorithms to plot (and their order)
+### ===========================================================================
+### Set file pathes and Plot specifications 
+### ===========================================================================
+
 algs = ["DT", "RF", "XG", "LR", "SVR", "ANN"]
 soil_type ='por'
 feature = 'PSD' 
@@ -19,34 +25,28 @@ target =  'por'
 verbose = True #False #
 
 ### ===========================================================================
-### Set file pathes and names
-### plot specifications
+### Set file pathes and names & lot specifications
 ### ===========================================================================
   
 file_data = "../data/data_PSD_Kf_por_props.csv"
-file_fig = '../results/SI_Fig_Scatter_Measured_{}_{}'.format(feature,target)
+file_fig = '../results/Figures_SI/SI_Fig_Scatter_Measured_{}_{}'.format(feature,target)
 
 textsize = 8
 markersize = 2
 figure_text = ['a','b','c','d','e','f']
 
-# =============================================================================
-# Load Data and perform Algorithm fitting to produce predictions
-# =============================================================================
-print("Training and Prediction of all 6 algorithms")
-print("###########################################")
-
 ### ===========================================================================
 ### Speficy Algorithm and set target and feature variables, run training
 ### ===========================================================================
+
+print("Training and Prediction of all 6 algorithms")
+print("###########################################")
 
 fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(7.5, 4.9), 
                         sharex = True, sharey = True)##, layout='constrained')
 axs = axs.ravel()
 
-# Plot the actual and predicted values for each model
 for i,algorithm in enumerate(algs):
-# for i,algorithm in enumerate(['LR']):
     print("\n###########################################")
     print("Training and Prediction of {}".format(algorithm))
     Analysis = PSD_2K_ML.PSD_2K_ML(
@@ -63,19 +63,11 @@ for i,algorithm in enumerate(algs):
     Analysis.set_target_variables()
     soil_class_names,soil_class_sample = Analysis.soil_class_specification(sort = True)
     k_min,k_max = np.min(Analysis.target_var),np.max(Analysis.target_var)
-    
-    ### specify AI algorithm
     Analysis.set_algorithm(verbose = verbose)
-    
-    ### specifying feature (input) and target (output) variables
     Analysis.set_feature_variables()#scale = False)
     Analysis.data_split()
-    
     Analysis.training(verbose = verbose)
-    ### determine prediction data on trained algorithm for specified data set
     Analysis.prediction(x_pred = 'full_set',verbose = verbose)
-    
-    ## calculate percentiles for plot
     bc5,pc5 = Analysis.quantiles_4_plot(bins=10,nth=5)
     bc95,pc95 = Analysis.quantiles_4_plot(bins=10,nth=95)
 
@@ -92,11 +84,8 @@ for i,algorithm in enumerate(algs):
     axs[i].set_ylabel(r"$\theta_{pred}$",fontsize=textsize)
     axs[i].grid(True, zorder = 1)
     axs[i].tick_params(axis="both",which="major",labelsize=textsize)
-
-    ### Plotting the 5th and 95th percentile range of fit
     axs[i].plot(bc5,pc5,'--',c = 'k',zorder=3)
     axs[i].plot(bc95,pc95,'--', c = 'k', zorder = 3)
-    ### one-by-one line of 
     axs[i].plot(Analysis.target_var,Analysis.target_var,':', c="grey")
     axs[i].set_xlim([k_min-0.01,k_max+0.01])
     axs[i].set_ylim([k_min-0.01,k_max+0.01])
@@ -113,4 +102,4 @@ axs[0].text(-0.05,1.1,'{} --> {}'.format(feature,target),
             bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
 
 plt.tight_layout()
-plt.savefig(file_fig+'.pdf')
+plt.savefig(file_fig+'2.pdf')

@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-@author: zech0001
+Script containing class for calculating hyraulic conductivity from PSD 
+information based on empirical formulas.
+
+Todo's: update doc-string of multiple empirical formulas implemented
+
+Author: A. Zech
 """
 import numpy as np
 # import scipy
@@ -23,14 +28,16 @@ DEF_settings = dict( # HydroGeoSieve parameters
 
 class PSD_to_K_Empirical(PSD_Analysis):
     """
-        Class to calculate values of hyraulic conductivity from partical size distribution
-        data based on empirical formulas.
-        
-        All equations follow the general form:
-            
-        where
-        
-        Calculated hydraulic conductivities are in the unit m/d
+        Class to calculate values of hyraulic conductivity from PSD (= partical                                             
+        size distribution) information based on empirical formulas.
+
+        Class inherits from class "PSD_Analysis" for determining specific 
+        quantities (e.g. d_10, d_50 etc) from PSD values
+                
+        Input
+        -----
+            data - data frame with PSD values (non-cumulative) of samples
+
     """    
     def __init__(
           self,
@@ -48,13 +55,16 @@ class PSD_to_K_Empirical(PSD_Analysis):
     def set_input_values(self):        
         
         """
-        Function to calculate PSD derived values needed for in empirical formulas.
+            Function to calculate PSD derived values needed for in empirical formulas.
+            Routines are inherited from class PSD_Analysis.
         
+        Input
+        -----
+            None.
 
-        Returns
-        -------
-        None.
-
+        Output 
+        ------
+            None.
         """
         
         self.calc_psd_diameters()
@@ -68,28 +78,34 @@ class PSD_to_K_Empirical(PSD_Analysis):
         
         self.K_empirical = pd.DataFrame()
 
-    def calc_parameters(self):
+    def calc_parameters(self,
+                        **settings):
 
         """
-        Function to calculate setting parameters of the water for conversion 
-        of permeability to hydraulic conductivity.
-        
-        It determines temperature dependend value of
-            - water density "rho" [M/V]
-            - dynamic viscosity "mu" [M/(L*T)] 
-            - tau
+            Function to calculate setting parameters of the water for conversion 
+            of permeability to hydraulic conductivity. Updates parameters saved
+            in class dictionary settings
+            
+            It determines temperature dependend values of
+                - water density "rho" [M/V]
+                - dynamic viscosity "mu" [M/(L*T)] 
+                - tau
+    
+            And computes the conversion factor rho*g/mu from permeability to hyd. conductivity
 
-        And computes the conversion factor rho*g/mu from permeability to hyd. conductivity
+        Input
+        -----
+            None.
 
-        Returns
-        -------
-        None.
+        Output 
+        ------
+            None.
 
         """
 
 
+        self.settings.update(**settings)
         T = self.settings["T"]
-        # T = 25
         rho = (3.1e-8 * T**3 - 7.0e-6 * T**2 + 4.19e-5 * T + 0.99985) # g/cm^3 # density of water #1000.*
         mu = (-7.0e-8 * T**3 + 1.002e-5 * T**2 - 5.7e-4 * T + 0.0178) # g/cm.s # viscosity of water
         tau = 1.093e-4 * T**2 + 2.102e-2 * T + 0.5889 #
@@ -108,16 +124,21 @@ class PSD_to_K_Empirical(PSD_Analysis):
                      add_data = False,
                      ):
         """
-        Function to write data frame with data and calculated hyd. conductivities
-        to a csv file.
-        
+            Function to write data frame with data and calculated hydraulic 
+            conductivities to a csv file.
+                
+        Input
+        -----
+            filename (str) - name and path of file to write data to
+            add_data (Boolean, default False) - 
+                if True: writes combined PSD data and Kf values to file
+                if False: writes only Kf values to file
 
-        Returns
-        -------
-        None.
-
+        Output 
+        ------
+            None.
         """
-        
+       
         
         if add_data:
             df = pd.concat([self.data,self.K_empirical],axis = 1)
@@ -126,27 +147,39 @@ class PSD_to_K_Empirical(PSD_Analysis):
 
         df.to_csv(filename)
 
-    def PSD2K_fullappMethods(self,**kwargs):
+    def PSD2K_fullappMethods(self,
+                             app=False,
+                             **kwargs):
 
         """
-        Calculation of hydraulic conductivity K from PSD 
-        through empirical methods being applicable to all samples: 
-            "Barr","AlyamaniSen","Shepherd","vanBaaren","Bear_KozenyCarman"
+            Function to calculate hydraulic conductivity Kf from PSD 
+            with empirical methods which are applicable to 
+            all samples (of the "TopIntegraal data set"): 
+                - "Barr"
+                - "AlyamaniSen"
+                - "Shepherd"
+                - "vanBaaren"
+                - "Bear_KozenyCarman"
 
-        Writes results to data frame.
-            
-        Returns
-        -------
-        Data frame with calculated Kf values for all samples.
-            
+        Input
+        -----
+            app (Boolean, default False) - 
+                if True: outputs a column indicating if method is applicable to sample
+            **kwargs - settings to be passed to individial methods
+
+        Output 
+        ------
+            K_empirical - data frame with calculated hydraulic conductivities 
+                for all samples in [cm/s], optionally in [m/d]            
         """
+
         self.K_empirical = pd.DataFrame()
 
-        self.Barr(app=False,**kwargs)
-        self.AlyamaniSen(app=False,**kwargs)
-        self.Shepherd(app=False,**kwargs)
-        self.VanBaaren(app=False,**kwargs)
-        self.Bear_KozenyCarman(app=False,**kwargs)
+        self.Barr(app=app,**kwargs)
+        self.AlyamaniSen(app=app,**kwargs)
+        self.Shepherd(app=app,**kwargs)
+        self.VanBaaren(app=app,**kwargs)
+        self.Bear_KozenyCarman(app=app,**kwargs)
         
         return self.K_empirical
 
@@ -154,18 +187,35 @@ class PSD_to_K_Empirical(PSD_Analysis):
     def PSD2K_allMethods(self,**kwargs):
 
         """
-        Calculation of hydraulic conductivity K from PSD 
-        through empirical methods: "Hazen","Hazen_simplified","Slichter",
-        "Terzaghi","Beyer","Sauerbreij","Krueger","KozenyCarman","Zunker",
-        "Zamarin","USBR","Barr","AlyamaniSen","Chapuis","KrumbeinMonk",
-        "Shepherd","vanBaaren","Bear_KozenyCarman"
+            Function to calculate hydraulic conductivity Kf from PSD 
+            with all implemented empirical methods: 
+                - "Barr"
+                - "AlyamaniSen"
+                - "Shepherd"
+                - "vanBaaren"
+                - "Bear_KozenyCarman"
+                - "Hazen"
+                - "Hazen_simplified"
+                - "Slichter"
+                - "Terzaghi"
+                - "Beyer"
+                - "Sauerbreij"
+                - "Krueger" 
+                - "KozenyCarman"
+                - "Zunker",
+                - "Zamarin"
+                - "USBR"
+                - "Chapuis"
+                - "KrumbeinMonk"
 
-        Writes results to data frame.
-            
-        Returns
-        -------
-        Data frame with calculated Kf values for all samples.
-            
+        Input
+        -----
+            **kwargs - settings to be passed to individial methods
+
+        Output 
+        ------
+            K_empirical - data frame with calculated hydraulic conductivities 
+                for all samples in [cm/s], optionally in [m/d]            
         """
 
         self.Hazen(**kwargs)

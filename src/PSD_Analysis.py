@@ -1,22 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jul 10 16:24:31 2023
-
-@author: zech0001
+Script containing class for PSD analysis
+Author: A. Zech
 """
+
 import numpy as np
 import pandas as pd
+import os
 import copy
 
 DEF_settings = dict(
         sieve_diam = [.00001,0.0001,0.0002,0.0005,.001,.002,.004,.008,.016,.025,.035,.05,.063,.075,.088,.105,.125,.150,.177,.21,.25,.3,.354,.42,.5,.6,.707,.85,1.,1.190,1.41,1.68,2], # in mm
-        # d_lutum = 0.008,  # in mm
-        # d_silt  = 0.063,  # in mm
-        # d_sand = 2. ,      # in mm
         )    
 
 class PSD_Analysis():
+    
+    """
+    Class for PSD (=particle size distribution) analysis
+    Author: A. Zech
+    
+    PDS data file with extended properties saved to file
+    """    
     
     def __init__(
           self,
@@ -27,9 +32,7 @@ class PSD_Analysis():
         self.settings = copy.copy(DEF_settings)
         self.settings.update(**settings_new)
 
-
-        # self.data = data
-        if self.data is not None:
+        if data is not None:
             # self.filter_psd_data()
             self.set_data(data)
             
@@ -41,13 +44,24 @@ class PSD_Analysis():
         """
         Function to read in data from condensed data file containing PSD, 
         K-values and soil_classes
+        
+        Input
+        -----
+            filename (str) - path to file containing data in csv-file format with standard column names
+            ** settings - setting update and kwargs-arguments to pass forward to routine "pd.read_csv" for specification of file settings
+        Output
+        ------
+            (self.)data - pd-dataframe containing PSD+Kf data 
         """    
         self.settings.update(**settings)
 
-        self.data = pd.read_csv(filename)
+        if not os.path.isfile(filename):
+            raise ValueError("File specified by file name does not exist as path+file location")
+            
+        self.data = pd.read_csv(filename,**settings)
 
         ### Identify PSD data and check number of sieve classes
-        self.filter_psd_data()
+        self.filter_psd_data(**settings)
 
         return self.data
 
@@ -55,6 +69,17 @@ class PSD_Analysis():
                 data,
                 **settings,
                 ):
+        """
+        Function to set data (PSD,K-values and soil_classes) as class object
+               
+        Input
+        -----
+            (self.)data - pd-dataframe containing PSD+Kf data with standard column names
+            ** settings (kwargs) -  settings update
+        Output
+        ------
+            None
+        """    
 
         self.settings.update(**settings)       
         self.data = data
@@ -62,7 +87,21 @@ class PSD_Analysis():
 
     def filter_psd_data(self,
                         sieve_classes = 'standard',
-                        **kwargs):
+                        **settings):
+
+        """
+        function to filter data: 
+                - extracting PSD filter classes 
+                - setting sieve diameter as "self.sieve_diam"
+       
+        Input
+        -----
+            sieve_classes (str) - (default is "standard")
+            ** settings (kwargs) -  settings update
+        Output
+        ------
+            (self.)psd - pd-dataframe containing PSD only
+       """    
 
         if sieve_classes == 'standard':
             sieve_classes = self.data.columns[[x.startswith("F") for x in self.data.columns]]        
@@ -71,6 +110,7 @@ class PSD_Analysis():
         else:
             sieve_classes = sieve_classes
         
+        self.settings.update(**settings)       
         self.sieve_diam = np.array(self.settings['sieve_diam'])
 
         if len(self.sieve_diam)-1 != len(sieve_classes.values):
@@ -78,17 +118,32 @@ class PSD_Analysis():
             # print(len(self.sieve_diam)-1)
             # print(len(sieve_classes.values))
         self.psd = pd.DataFrame(self.data, columns=sieve_classes)
+        
+        return self.psd
 
     def calc_psd_diameters(self,
                            diams = [5,10,16,17,20,25,50,60,75,84,90,95],
-                           ):
+                           **settings):
 
-        """ calculates percentile diameters from PSD (e.g. d10,d50,d60):
-            by linear interpolation
+        """ Function to calculate d_X (e.g. d10,d50,d60) representing the 
+            maximum particle diameter of X% material (by weight) passing.  
+            Determined by linear interpolation at log10-scale.
             
-            all typical diameters are calculated and saved in a data frame
             
+            Input
+            -----
+                diam (list/ndarray) - values of percentage to determine 
+                grain diameters for
+                    default  = [5,10,16,17,20,25,50,60,75,84,90,95], 
+                    containing all typical diameters 
+                ** settings -  settings update
+            Output
+            ------
+                (self.)psd_properties - pd-dataframe containing d_X values
+                             
         """
+
+        self.settings.update(**settings)       
         self.sieve_diam = np.array(self.settings['sieve_diam'])
         
         def interp(x):
@@ -100,13 +155,26 @@ class PSD_Analysis():
 
         return self.psd_properties
 
-    def calc_psd_folk(self):
+    def calc_psd_folk(self,
+                      diams = ['d5','d16','d25','d50','d75','d84','d95'],
+                      ):
 
-        """ identify Folk diameters of percentage from PSD: e.g. d10,d50,d60 
-            expressed as log2 values
+        """ Function to calculate Folk diameters of percentage from PSD: 
+            e.g. d10,d50,d60 expressed as log2 values
+            
+            Input
+            -----
+                diam (list/ndarray) - values of percentage to determine 
+                grain diameters for
+                    default  = [5,10,16,17,20,25,50,60,75,84,90,95], 
+                    containing all typical diameters 
+             Output
+            ------
+                (self.)psd_properties - pd-dataframe containing d_X values
+                             
         """
             
-        for index in ['d5','d16','d25','d50','d75','d84','d95']:
+        for index in diams:
             self.psd_properties[index+'f'] = -np.log2(self.psd_properties[index])
 
         diff_d84f_d16f = self.psd_properties['d84f'] - self.psd_properties['d16f']
@@ -120,13 +188,22 @@ class PSD_Analysis():
 
     def calc_psd_parameters(self):
 
-        """ calculate parameters from PSD diameters, such as:
+        """ Function to calculate additional parameters from PSD diameters:
                 - uniformity
                 - porosity
                 - d_geo
                 - d_dom
+            
+            Input
+            -----
+                None
+    
+             Output
+            ------
+                (self.)psd_properties - pd-dataframe containing additional properties
+                             
         """
-
+ 
         self.psd_properties['uniformity'] = self.psd_properties['d60'] / self.psd_properties['d10']
         # porosity estimate n:
         self.psd_properties['por'] = 0.255 * ( 1 + 0.83**self.psd_properties['uniformity'] )
@@ -140,7 +217,6 @@ class PSD_Analysis():
         return self.psd_properties
 
     def calc_psd_soil_class(self,
-            # d_calc = [5,10,16,17,20,25,50,60,75,84,90,95],  # in % not fraction
             sieve_calc = [0.002,0.008,0.016,0.063,0.075,2], # in mm
             d_lutum = 0.008,  # in mm
             d_silt  = 0.063,  # in mm
@@ -149,14 +225,30 @@ class PSD_Analysis():
             ):
 
         """
-        Calculate percentage of soil_types sand, silt and lutum
-            - based on standard sieve sizes (sieve_calc)
-            - characteristic grain diameters for 
-                lutum/clay (d_lutum)
-                silt (d_silt)
-                sand (d_sand)
-        Calculates d50 of sand: dz50
-        perform classification (classification = True) of soil classes
+            Function to calculate percentage of soil_types sand, silt and lutum
+                - based on standard sieve sizes (sieve_calc)
+                - characteristic grain diameters for 
+                    lutum/clay (d_lutum)
+                    silt (d_silt)
+                    sand (d_sand)
+                    Calculates d50 of sand: dz50\
+                        
+            Input
+            -----
+                sieve_calc (list/ndarray) - values of relevant sieve diameters in [mm]
+                    default = [0.002,0.008,0.016,0.063,0.075,2]
+                d_lutum (float) - diameter value of upper limit for lutum in [mm]
+                    default = 0.008
+                d_silt (float) - diameter value of upper limit for silt in [mm]
+                    default = 0.063
+                d_sand (float) - diameter value of upper limit for sand in [mm]
+                    default = 2.    
+                classification (Boolean, default True) - perform classification of soil classes
+                through class function "calc_NEN5104_classification()"
+    
+             Output
+            ------
+                (self.)psd_properties - pd-dataframe containing additional properties
 
         """
         sieve_calc = np.array(sieve_calc)    
@@ -169,7 +261,6 @@ class PSD_Analysis():
 
         psd_calc = pd.DataFrame(self.psd.apply(interp, axis=1).tolist(), 
                                 columns=sieve_calc).add_prefix('d')
-        self.psd_calc = psd_calc
 
         # percentages lutum, silt, sand 
         perc_lutum = psd_calc.iloc[:,np.argmin(abs(sieve_calc-d_lutum))]
@@ -179,21 +270,6 @@ class PSD_Analysis():
         self.psd_properties['perc_lutum'] = perc_lutum  # percentage lutum/clay
         self.psd_properties['perc_silt'] = perc_silt    # percentage silt
         self.psd_properties['perc_sand'] = perc_sand    # percentage sand
-
-        # # find median sand size
-        # # rescale percentages to p(0.063) = 0 and p(2.0) = 100
-        # filter_sand = (d_silt<self.sieve_diam[1:])*(self.sieve_diam[1:]<=d_sand)
-        # pp_sand = self.psd.cumsum(axis=1).iloc[:,filter_sand]
-        # def renormalize(x):
-        #     y = (x - (perc_lutum.values + perc_silt.values))* 100/perc_sand.values
-        #     return y           
-        # psd_sand_renorm = pp_sand.apply(renormalize, axis=0) #.tolist(), columns=sieve_calc).add_prefix('d')
-        # sieve_sand = np.compress(filter_sand,self.sieve_diam)
-        # def interp(x):
-        #     y = 10**np.interp(50,x,np.log10(sieve_sand))
-        #     return y
-        # # dz50 = np.power(10,np.interp(50,psd_sand_renorm,np.log10(sieve_sand)))
-        # self.psd_properties['dz50'] = psd_sand_renorm.apply(interp, axis=1)              # median sand size
             
         if classification:
             self.calc_NEN5104_classification()
@@ -206,20 +282,25 @@ class PSD_Analysis():
                                     write_ext_data = False):
 
         """
-        Performing classification of lithology according to NEN5104 classification
-        based on calculated percentages of sand, silt and lutum 
+            Function to classify lithology class according to NEN5104 classification
+            based on calculated percentages of sand, silt and lutum 
+                        
+            Input
+            -----
+                treat_peat (Boolean, default False) - if True includes peat samples
+                    by marking them with a litho-class specification "p"
+                write_ext_data (str/Boolean, default False) - write resulting 
+                    data frame to file specified by name passed to keyword
+             Output
+            ------
+                df - pd-dataframe (Series) containing litho-class specification for each sample
         """
-
-        # if not bool(self.psd_properties):
-        #     self.calc_psd_soiltype()
         
         perc_lutum = self.psd_properties['perc_lutum'] # percentage lutum/clay
         perc_silt = self.psd_properties['perc_silt'] #percentage silt
         perc_sand = self.psd_properties['perc_sand'] # percentage sand
-        # dz50 = self.psd_properties['dz50'] #median sand size
 
         #NEN5104 classification
-        # # <8% C0.002 and >50% sand: sand
         df = pd.Series(data = np.zeros(len(self.psd.index)), dtype=str, name='soil_class')
         df.iloc[( 50. <= perc_lutum)] = "ks1"
         df.iloc[(35. <= perc_lutum)*(perc_lutum)<50.] = "ks2"
@@ -252,17 +333,27 @@ class PSD_Analysis():
         if write_ext_data:
             self.extended_data_to_csv(file_data_ext = write_ext_data)    
 
-        # self.psd_properties['sand_median_class'] = sand.values   
         return df
 
     def filter_litho(self,
                      treat_peat = False,
+                     write_ext_data = False,
                      verbose = False,
-                     write_ext_data = False):
+                     ):
 
-        """ function to filter samples into the three litho classes
-            with special adaption to treating peat samples            
-
+        """ Function to filter samples into the three litho classes (as specified
+                for the data set under use) with special adaption to treating peat samples      
+                        
+            Input
+            -----
+                treat_peat (Boolean, default False) - if True includes peat samples
+                    by marking them with a litho-class specification "p"
+                write_ext_data (str/Boolean, default False) - write resulting 
+                    data frame to file specified by name passed to keyword
+                verbose (Boolean, default False) - if True outputs specifics of procedure
+             Output
+            ------
+                df - pd-dataframe (Series) containing litho-class specification for each sample
         """
 
         lithoclasses_sand = ['zs1', 'zs2', 'zs3', 'zs4', 'zk']
@@ -293,26 +384,52 @@ class PSD_Analysis():
         self.data['litho_main'] = df.values   
         
         if write_ext_data:
-            self.extended_data_to_csv(file_data_ext = write_ext_data)    
+            self.extended_data_to_csv(file_ext_data = write_ext_data)    
 
         return df
 
 
     def extended_data_to_csv(self,
-                              file_data_ext = ".data_props.csv"
+                              file_ext_data = ".data_props.csv"
                               ):
-       #TODO: add here check on file path 
-       self.data.to_csv(file_data_ext,index = False)   
-       print("\nPDS data file with extended properties saved to file: ",file_data_ext)
+        
+        """
+            Function to write data with extended information 
+                (including litho-classes) to csv-file      
+                        
+            Input
+            -----
+                 file_ext_data (str) - name and path of file to write data to
+                 
+            Output
+            ------
+                None
+        """
+        #TODO: add here check on file path 
+        self.data.to_csv(file_ext_data,index = False)   
+        print("\nPDS data file with extended properties saved to file: ",file_ext_data)
 
 
     def psd_properties_to_csv(self,
                               file_psd_props = ".PSD_props.csv"
                               ):
         
-       #TODO: add here check on file path 
-       self.psd_properties.to_csv(file_psd_props,index = False)   
-       print("\nPDS Properties saved to file: ",file_psd_props)
+        """
+            Function to write psd data (including d_X values etc) 
+            to csv-file      
+                        
+            Input
+            -----
+                 file_psd_props (str) - name and path of file to write data to
+                 
+            Output
+            ------
+                None
+        """
+
+        #TODO: add here check on file path 
+        self.psd_properties.to_csv(file_psd_props,index = False)   
+        print("\nPDS Properties saved to file: ",file_psd_props)
 
 
     def sub_sample_litho(self,
@@ -323,10 +440,28 @@ class PSD_Analysis():
                         ):
 
         """
-            soil_type options:
-                - sand
-                - silt
-                - clay
+            Function to filter data to main lithotype  
+                        
+            Input
+            -----
+                soil_type (str) - type of main lithology class filter data,
+                    options:
+                        - sand
+                        - silt
+                        - clay
+                inplace (Boolean, default False)
+                    reduces data in place, i.e. Class DataFrame containing samples
+                    is reduced to samples of specified soil_type
+                filter_props (Boolean, default False)
+                    filter also the data frame containing the pds property 
+                    to those samples of the specified soil type
+                    (if inplace is True it also applies to the  pds properties)
+                verbose (Boolean, default False) - if True outputs specifics of procedure
+                
+            Output
+            ------
+                (self.)data_filtered - pd-dataframe containing reduced data set
+
         """
 
         self.soil_type = soil_type
@@ -355,62 +490,31 @@ class PSD_Analysis():
             #self.filter_psd_data()
         return self.data_filtered
 
-    # def sub_sample_soil_type(self,
-    #                          soil_type = 'sand',
-    #                          inplace = False,
-    #                          filter_props = False,
-    #                          verbose = True,
-    #                          ):
-
-    #     """
-    #         soil_type options:
-    #             - sand
-    #             - silt
-    #             - clay
-    #     """
-
-    #     self.soil_type = soil_type
-    #     if self.soil_type == 'sand':
-    #         # soil_classes = ['Zs1', 'Zs2', 'Zs3', 'Zs4', 'Zk','Lz3']
-    #         # soil_classes = ['Zs1', 'Zs2', 'Zs3', 'Zs4', 'Zk']
-    #         # soil_classes = ['zs1', 'zs2', 'zs3', 'zs4', 'zk']
-    #         soil_classes = self.settings['lithoclasses_sand']
-    #     elif self.soil_type == 'clay':
-    #         # soil_classes = ['Ks1', 'Ks2', 'Ks3', 'Ks4']
-    #         # soil_classes = ['ks1', 'ks2', 'ks3', 'ks4']
-    #         soil_classes = self.settings['lithoclasses_clay']
-    #     elif self.soil_type == 'silt':
-    #         # soil_classes = ['Lz1','Lz3', 'Kz1', 'Kz2', 'Kz3']
-    #         # soil_classes = ['lz1','lz2','lz3', 'kz1', 'kz2', 'kz3']
-    #         soil_classes = self.settings['lithoclasses_silt']
-
-    #     else:
-    #         print("WARNING: soil_type not in the list. \nSelect from: 'sand', 'clay', 'silt'.")
-
-
-    #     # filter_soil_type = self.psd_properties.soil_class.isin(soil_classes)
-    #     filter_soil_type = self.data.soil_class.isin(soil_classes)
-    #     self.data_filtered = self.data.loc[filter_soil_type]
-    #     if verbose:        
-    #         print("Input data filtered to soil type: {}".format(self.soil_type))
-    #         print("Number of samples in sub-set: {}".format(len(self.data_filtered)))
-
-    #     if filter_props:
-    #         self.psd_properties_filtered   = self.psd_properties.loc[filter_soil_type] 
-        
-    #     if inplace:
-    #         self.data = self.data_filtered
-    #         if filter_props:
-    #             self.psd_properties = self.psd_properties_filtered
-    #         self.psd = self.psd.loc[filter_soil_type]
-    #         #self.filter_psd_data()
-    #     return self.data_filtered
-
     def sub_sample_por(self,
                        inplace = False,
                        filter_props = False,
                        verbose = True,
                        ):
+
+        """
+            Function to filter data to samples including porosity (data set Top-Por)
+                        
+            Input
+            -----
+                inplace (Boolean, default False)
+                    reduces data in place, i.e. Class DataFrame containing samples
+                    is reduced to samples with porosity
+                filter_props (Boolean, default False)
+                    filter also the data frame containing the pds property 
+                    to samples with porosity value
+                    (if inplace is True it also applies to the  pds properties)
+                verbose (Boolean, default False) - if True outputs specifics of procedure
+                
+            Output
+            ------
+                (self.)data_filtered - pd-dataframe containing reduced data set
+
+        """
 
         filter_por = self.data['porosity'].notna()
         self.data_filtered = self.data.loc[filter_por]
@@ -431,10 +535,45 @@ class PSD_Analysis():
     def stats_data(self, 
                    PSD_stats2save = ['d10','d50','perc_lutum','perc_silt','perc_sand'],
                    other_stats2save = [], #
-                   filter_props = False,
                    file_data_stats = False, 
+                   filter_props = False,
                    verbose = True
                    ):
+
+        """
+            Function to write psd data (including d_X values etc) 
+            to csv-file      
+                        
+            Input
+            -----
+                 file_psd_props (str) - name and path of file to write data to
+
+            Function to filter data to samples including porosity (data set Top-Por)
+                        
+            Input
+            -----
+                PSD_stats2save (ist) - selection of column names (=properties) 
+                    to perform statistical analysis on
+                    default = ['d10','d50','perc_lutum','perc_silt','perc_sand']
+
+                other_stats2save (list) -  additional keys to perform 
+                    statistics on and save to result file
+
+                file_data_stats (str/Boolean, default False) - write resulting 
+                    statistics to file specified by name passed to keyword
+                
+                filter_props (Boolean, default False)
+                    filter also the data frame containing the pds property 
+                    to samples with porosity value
+                    (if inplace is True it also applies to the  pds properties)
+                
+                verbose (Boolean, default True) - outputs specifics of procedure
+                
+            Output
+            ------
+                stats - pd-dataframe containing statistics of specified key words
+        """
+
 
         if filter_props:
             psd_properties = self.psd_properties_filtered

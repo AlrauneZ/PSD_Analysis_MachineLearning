@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar  5 14:57:23 2024
+Script reproducing Figure in the supporting information containing scatter 
+plots comparing Kf estimates of all 6 algorithms to measured Kf for data-subset
+(sand, silt, clay) as well as other feature/target-variable combinations 
+linked to Top-por data set.
 
-@author: alraune
+Author: A. Zech
 """
 
 import PSD_2K_ML
@@ -11,12 +14,31 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.close('all')
 
-### algorithms to plot (and their order)
+### ===========================================================================
+### Set file pathes and Plot specifications 
+### ===========================================================================
+
 algs = ["DT", "RF", "XG", "LR", "SVR", "ANN"]
-soil_type = 'por' #'silt'#'clay' # 'sand' #
-feature ='PSD' # 'dX_por' 
-target =  'Kf' #
-verbose = True #False #
+soil_type = 'por' #'sand' #'silt'#'clay' # 
+feature ='dX_por'# 'PSD' # 
+target =  'Kf' 
+verbose = True
+
+### ===========================================================================
+### Set file pathes and names & plot specifications
+### ===========================================================================
+
+file_data = "../data/data_PSD_Kf_por_props.csv"
+if feature == 'PSD' and target == 'Kf': 
+    file_fig = '../results/Figures_SI/SI_Fig_Scatter_Measured_{}'.format(soil_type)
+    text = 'Top - {}'.format(soil_type)
+else:
+    file_fig = '../results/Figures_SI/SI_Fig_Scatter_Measured_{}_{}'.format(feature,target)
+    text = '{} --> {}'.format(feature,target)
+
+textsize = 8
+markersize = 2
+figure_text = ['a','b','c','d','e','f']
 
 lithoclasses = dict(
     por = ['zs1', 'zs2', 'zs3', 'zs4', 'zk'],
@@ -26,45 +48,17 @@ lithoclasses = dict(
     )
 
 ### ===========================================================================
-### Set file pathes and names
-### plot specifications
-### ===========================================================================
-
-
-file_data = "../data/data_PSD_Kf_por_props.csv"
-if feature == 'PSD' and target == 'Kf': 
-    file_fig = '../results/SI_Fig_Scatter_Measured_{}'.format(soil_type)
-    text = 'Top - {}'.format(soil_type)
-else:
-    file_fig = '../results/SI_Fig_Scatter_Measured_{}_{}'.format(feature,target)
-    text = '{} --> {}'.format(feature,target)
-
-textsize = 8
-markersize = 2
-figure_text = ['a','b','c','d','e','f']
-
-# =============================================================================
-# Load Data and perform Algorithm fitting to produce predictions
-# =============================================================================
-print("Training and Prediction of all 6 algorithms")
-print("###########################################")
-
-### ===========================================================================
 ### Speficy Algorithm and set target and feature variables, run training
 ### ===========================================================================
 
-# =============================================================================
-### plot specifications
-# Create a subplot for each model's comparison plot
+print("Training and Prediction of all 6 algorithms")
+print("###########################################")
 
-# fig, axs = plt.subplots(nrows=3, ncols=2, figsize=(7.5, 9), 
 fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(7.5, 5.25), 
-                        sharex = True, sharey = True)##, layout='constrained')
+                        sharex = True, sharey = True)
 axs = axs.ravel()
 
-# Plot the actual and predicted values for each model
 for i,algorithm in enumerate(algs):
-# for i,algorithm in enumerate(['LR']):
     print("\n###########################################")
     print("Training and Prediction of {}".format(algorithm))
     Analysis = PSD_2K_ML.PSD_2K_ML(
@@ -81,26 +75,13 @@ for i,algorithm in enumerate(algs):
     Analysis.set_target_variables()
     soil_class_names,soil_class_sample = Analysis.soil_class_specification(sort = True)
     k_min,k_max = np.min(Analysis.target_var),np.max(Analysis.target_var)
-    
-    ### specify AI algorithm
-    Analysis.set_algorithm(
-        # algorith = algorithm, 
-        verbose = verbose)
-    
-    ### specifying feature (input) and target (output) variables
-    Analysis.set_feature_variables()#scale = False)
-    Analysis.data_split()
-    
+    Analysis.set_algorithm(verbose = verbose)
+    Analysis.set_feature_variables()
+    Analysis.data_split()    
     Analysis.training(verbose = verbose)
-    ### determine prediction data on trained algorithm for specified data set
     Analysis.prediction(x_pred = 'full_set',verbose = verbose)
-    
-    ## calculate percentiles for plot
     bc5,pc5 = Analysis.quantiles_4_plot(bins=10,nth=5)
     bc95,pc95 = Analysis.quantiles_4_plot(bins=10,nth=95)
-
-# Plot the actual and predicted values for each model
-# for i,algorithm in enumerate(algs):
 
     scatter = axs[i].scatter(
         x = Analysis.y_obs,
@@ -119,10 +100,8 @@ for i,algorithm in enumerate(algs):
     axs[i].grid(True, zorder = 1)
     axs[i].tick_params(axis="both",which="major",labelsize=textsize)
 
-    ### Plotting the 5th and 95th percentile range of fit
     axs[i].plot(bc5,pc5,'--',c = 'k',zorder=3)
     axs[i].plot(bc95,pc95,'--', c = 'k', zorder = 3)
-    ### one-by-one line of 
     axs[i].plot(Analysis.y_test,Analysis.y_test,':', c="grey")
     axs[i].set_xlim([k_min-0.01,k_max+0.01])
     axs[i].set_ylim([k_min-0.01,k_max+0.01])
@@ -134,9 +113,7 @@ for i,algorithm in enumerate(algs):
                 fontsize=textsize, transform=axs[i].transAxes,
                 bbox = dict(boxstyle='round', facecolor='white'))
 
-
 axs[0].text(-0.05,1.1,text,
-# axs[0].text(-0.05,1.1,'Top - {}'.format(soil_type),
             fontsize=textsize+1, transform=axs[0].transAxes,
             bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
 
@@ -145,13 +122,8 @@ fig.legend(handles=scatter.legend_elements()[0],
             labels = lithoclasses[soil_type], 
             loc='lower center', 
             ncol=7, 
-            # bbox_to_anchor=(1, 0.1),             
-            prop={'size': textsize},#,fontsize=textsize,
+            prop={'size': textsize},
             bbox_transform=fig.transFigure,
-#            columnspacing=1.0,
-#            title = "lithoclasses",
             )
 
-### plt.tight_layout()
-# plt.savefig(file_fig+'.png',dpi = 300)
 plt.savefig(file_fig+'.pdf')

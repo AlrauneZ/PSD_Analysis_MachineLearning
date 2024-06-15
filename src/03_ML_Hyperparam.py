@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Script performing hyperparameter testing and optimization based on 
+routines implemented in class "PSD_2K_ML":
+    - reading PSD data from csv-file (with standardised column naming)
+    - determining grain size diameters (d10, d50, d60 etc)
+    - Hyperparameter testing with GridSearch
+    - Hyperparameter testing with Skopt, including visualization of results and save figures
+    - Algorithm Performance with optimal Parameters
+
+Author: A. Zech
 """
 
 import PSD_2K_ML
 import matplotlib.pyplot as plt
-# import numpy as np
 import skopt.plots
 import os
 import warnings
@@ -13,21 +21,32 @@ import warnings
 warnings.filterwarnings("ignore")
 plt.close('all')
 
+### ===========================================================================
+### Key words to specify modus of script:
+### ===========================================================================
+    
+### list of algorithms to test
+# algorithms = ['DT','RF','XG','LR','SVR','ANN'] 
+algorithms = ['RF'] #['DT'] #'RF' #'XG' # 'LR'   #'SVR'  #'ANN'  - for running routine on a subset of the algorithms
 
-algorithms = ['RF'] #'ANN'  #'XG' #'SVR'  #'RF' 
-#algorithms = ['DT','RF','XG','LR','SVR','ANN']
-soil_type = 'topall' #'silt'#'sand' # 'clay' # 'por' #'clay' #
+### type of data set (top-all, top-sand, top-silt, top-clay, top-por)
+soil_type = 'sand' ##'silt'# 'clay' # 'por' 'topall' #
+
 verbose = True #False #
-feature = 'dX' #'PSD' #'dX_por' #
+
+### Combination of feature and target variables:
+feature = 'PSD' #'dX' #'dX_por' #
 target = 'Kf' #'por' # 
-test = 0
+
+### ===========================================================================
+### File settings 
+### ===========================================================================
 
 file_data = "../data/data_PSD_Kf_por_props.csv"
-# file_data = "../data/data_PSD_Kf_por.csv"
-dir_results = "../results/HP_tuning_{}_{}/"#.format(feature,target)
-file_results_GS = "Hyper_{}_{}_"+str(test)+"_GS.csv"
-file_results_skopt = "Hyper_{}_{}_"+str(test)+"_Skopt.csv"
-file_figure_skopt = 'HP_{}_{}_{}_skopt.png'#.format(soil_type,algorithm,test)
+dir_results = "../results/Hyperparameter_tuning/HP_tuning_{}_{}/"#.format(feature,target)
+file_results_GS = "Hyper_{}_{}_GS.csv"#.format(soil_type,algorithm)
+file_results_skopt = "Hyper_{}_{}_Skopt.csv"#.format(soil_type,algorithm)
+file_figure_skopt = 'HP_{}_{}_skopt.png'#.format(soil_type,algorithm)
  
 
 for algorithm in algorithms:
@@ -46,7 +65,7 @@ for algorithm in algorithms:
         os.makedirs(dir_results_HP)
     path_results_GS = dir_results_HP+file_results_GS
     path_results_skopt = dir_results_HP+file_results_skopt
-    path_figure_skopt = dir_results_HP+file_figure_skopt.format(soil_type,algorithm,test)
+    path_figure_skopt = dir_results_HP+file_figure_skopt.format(soil_type,algorithm)
             
     ### ===========================================================================
     ### Initialize Analysis and load in data
@@ -70,11 +89,11 @@ for algorithm in algorithms:
     Analysis.set_algorithm(verbose = verbose)
     
     ### specifying feature (input) and target (output) variables
-    data_feat = Analysis.set_feature_variables() #feature = feature)
-    data_target = Analysis.set_target_variables() #target = target)
+    data_feat = Analysis.set_feature_variables() 
+    data_target = Analysis.set_target_variables()
     
     ### split data for training and train 
-    Analysis.data_split()#verbose = verbose)
+    Analysis.data_split()
     
     ### ===========================================================================
     ###   Hyperparameter testing GridSearch

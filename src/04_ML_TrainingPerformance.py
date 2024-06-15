@@ -1,20 +1,29 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Sep  8 11:24:52 2023
+Script evaluating performance of a selected ML algorithms after training based on 
+routines implemented in class "PSD_2K_ML":
+    - specifying settings, such as feature/target-variable combination and 
+        type of data(sub)set
+    - reading data from csv-file (with standardised column naming)
+    - train algorithm with optimal hyperparameters (determined separately)
+    - evaluate algorithm performance and save results to file
 
-@author: zech0001
+Author: A. Zech
 """
 
 # import numpy as np
 # import pandas as pd
 import PSD_2K_ML
 
+### ===========================================================================
+### Key words to specify modus of script:
+### ===========================================================================
+
 algorithm ='XG' # 'DT' #LR' # 'ANN'  # 'RF' #'SVR' # ####  
-soil_type = 'por' # 'topall'#'sand' #  'clay' #'silt' #
+soil_type = 'topall'#'sand' #  'clay' #'silt' #'por' # 
 feature = 'PSD' #'dX_por' #'dX' #
 target = 'Kf' #'por' # #
-
 verbose = True #False #
 
 print('\n#################################')
@@ -30,6 +39,10 @@ print('#################################\n')
 ### ===========================================================================
 
 file_data = "../data/data_PSD_Kf_por.csv"
+
+### ===========================================================================
+### Initialize Analysis
+### ===========================================================================
 
 Analysis = PSD_2K_ML.PSD_2K_ML(
                         algorithm = algorithm,

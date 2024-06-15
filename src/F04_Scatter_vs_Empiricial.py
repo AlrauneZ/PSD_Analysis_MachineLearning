@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Oct 11 09:15:40 2023
+Script reproducing Figure 4 of the manuscripts containing scatter plots 
+comparing Kf values: estimates of Kf with empirical Barr method to measured Kf
+and estimates of Kf with empirical Barr method to estimates of the Random
+Forest ML algorithm for standard feature/target variable combination.
 
-@author: alraune
+Author: A. Zech
 """
 
 import matplotlib.pyplot as plt
@@ -12,7 +15,10 @@ import PSD_2K_ML
 from sklearn.metrics import r2_score
 plt.close('all')
 
-### algorithms to plot (and their order)
+### ===========================================================================
+### Key words to specify modus of script:
+### ===========================================================================
+
 algorithm = "RF"
 soil_type ='topall' 
 feature = 'PSD' 
@@ -20,19 +26,17 @@ target = 'Kf'
 verbose = True #False #
 
 ### ===========================================================================
-### Set file pathes and names
-### plot specifications
+### Set file pathes and names & plot specifications
 ### ===========================================================================
   
 file_data = "../data/data_PSD_Kf_por_props_Kemp.csv"
-fig_results = '../results/Fig04_Scatter_RF_Barr'
-
+fig_results = '../results/Figures_paper/Fig04_Scatter_RF_Barr'
 textsize = 8
 markersize = 10
 
-# # =============================================================================
-# # Load Data and perform Algorithm fitting to produce predictions
-# # =============================================================================
+### ===========================================================================
+### Load Data and perform Algorithm fitting to produce predictions
+### ===========================================================================
 
 print("\n###########################################")
 print("Training and Prediction of {}".format(algorithm))
@@ -64,11 +68,15 @@ print("NSE measured vs Barr:", r2_Barr_measured)
 print("NSE RF vs Barr:", r2_Barr_RF)
 print("NSE RF vs measured:", Analysis.r2)
 
-# Plot the actual and predicted values for each model
-#fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(7.5, 3.5), sharey = True)##, layout='constrained')
-fig, axs = plt.subplots(nrows=2, ncols=1, figsize=(3.75, 6.5), sharex = True)##, layout='constrained')
+### ===========================================================================
+### Plot the actual and predicted values for each model
+### ===========================================================================
+
+fig, axs = plt.subplots(nrows=2, ncols=1, figsize=(3.75, 6.5), sharex = True)
 axs = axs.ravel()
 
+### ===========================================================================
+### right figure
 i = 1
 scatter = axs[i].scatter(
     x = Analysis.y_pred, 
@@ -85,19 +93,16 @@ axs[i].set_ylabel("$\log_{10}(K_{Barr}$ [m/d])",fontsize=textsize)
 axs[i].grid(True, zorder = 1)
 axs[i].set_yticks([2,0,-2,-4,-6])
 axs[i].tick_params(axis="both",which="major",labelsize=textsize)
-
-### one-by-one line of 
 axs[i].plot([k_min-0.01,k_max+0.01],[k_min-0.01,k_max+0.01],':', c="grey")
 axs[i].set_xlim([0.98*k_min,1.05*k_max])
 axs[i].set_ylim([0.98*k_min,1.05*k_max])
-
 axs[i].text(0.1,0.9,'NSE = {:.2f}'.format(r2_Barr_RF),
             fontsize=textsize, transform=axs[i].transAxes,
             bbox = dict(boxstyle='round', facecolor='white'))
+axs[i].text(-0.1,-0.1,'(b)', fontsize=textsize, transform=axs[i].transAxes) 
 
-axs[i].text(-0.1,-0.1,'(b)',
-            fontsize=textsize, transform=axs[i].transAxes) #,            bbox = dict(boxstyle='round', facecolor='white'))
-
+### ===========================================================================
+### left figure
 i = 0
 scatter = axs[i].scatter(
     x = np.log10(data['Kf']),
@@ -113,36 +118,25 @@ axs[i].set_ylabel("$\log_{10}(K_{Barr}$ [m/d])",fontsize=textsize)
 axs[i].grid(True, zorder = 1)
 axs[i].set_yticks([2,0,-2,-4,-6])
 axs[i].tick_params(axis="both",which="major",labelsize=textsize)
-
-### one-by-one line of 
 axs[i].plot([k_min-0.01,k_max+0.01],[k_min-0.01,k_max+0.01],':', c="grey")
-
 axs[i].set_xlim([0.98*k_min,1.05*k_max])
 axs[i].set_ylim([0.98*k_min,1.05*k_max])
-
 axs[i].text(0.1,0.9,'NSE = {:.2f}'.format(r2_Barr_measured),
             fontsize=textsize, transform=axs[i].transAxes,
             bbox = dict(boxstyle='round', facecolor='white'))
-
-axs[i].text(-0.1,-0.1,'(a)',
-            fontsize=textsize, transform=axs[i].transAxes)#, bbox = dict(boxstyle='round', facecolor='white'))
-
-axs[0].text(-0.05,1.05,'Top - All',
+axs[i].text(-0.1,-0.1,'(a)', fontsize=textsize, transform=axs[i].transAxes)
+axs[i].text(-0.05,1.05,'Top - All',
             fontsize=textsize+1, transform=axs[0].transAxes,
             bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
 
-#fig.subplots_adjust(right=.85, bottom = 0.15)
-fig.subplots_adjust(right=.78)#, bottom = 0.15)
+fig.subplots_adjust(right=.78)
 fig.legend(handles=scatter.legend_elements(num=len(soil_class_names))[0], 
             labels=list(soil_class_names), 
             loc='center right', 
             ncol=1, 
             prop={'size': textsize},#,fontsize=textsize,
             bbox_transform=fig.transFigure,
-#            title = "lithoclasses",
             title = "litho \nclasses",
             )
 
-# plt.tight_layout()
-#plt.savefig(fig_results+'.png',dpi=300)
-fig.savefig(fig_results+'.pdf')
+fig.savefig(fig_results+'2.pdf')

@@ -1,21 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Sep  7 20:29:44 2023
+Script calculating hyraulic conductivity from PSD information using empirical 
+formulas implemented in class "PSD_K_empirical" for the Top-Integral data set
 
-@author: zech0001
+Author: A. Zech
 """
 
-#import matplotlib.pyplot as plt
-#import numpy as np
-# import pandas as pd
 import PSD_K_empirical
 
 ###----------------------------------------------------------------------------
 ### Set file pathes and names
 ###----------------------------------------------------------------------------
 
-# file_data = "../data/data_PSD_Kf_por.csv"
 file_data = "../data/data_PSD_Kf_por_props.csv"
 file_data_Kemp = "../data/data_PSD_Kf_por_props_Kemp.csv"
 file_Kemp_all = "../results/Kemp_all.csv"
@@ -40,11 +37,5 @@ Analysis_Kemp.write_to_csv(file_Kemp_all) # write results for all empirical meth
 ### Select K_emp from methods with applicability to all samples:
 ###----------------------------------------------------------------------------
 
-# app_cond = K_empirical.columns[[x.startswith("app") for x in K_empirical.columns]] # condition picking methods applicable to all samples
-# app = pd.DataFrame(K_empirical, columns=app_cond)#.values
-# print("Method with applicabilty to all samples:")
-# print(app.columns[(app.sum() == len(app))])
-
 K_empirical =  Analysis_Kemp.PSD2K_fullappMethods()
 Analysis_Kemp.write_to_csv(file_data_Kemp,add_data = True)
-#df = pd.concat([data,K_empirical],axis = 1)

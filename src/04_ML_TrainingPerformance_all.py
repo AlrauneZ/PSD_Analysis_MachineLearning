@@ -1,19 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Oct 11 12:32:43 2023
+Script evaluating performance of all six ML algorithms after training based on 
+routines implemented in class "PSD_2K_ML":
+    - specifying settings, such as feature/target-variable combination and 
+        type of data(sub)set
+    - reading data from csv-file (with standardised column naming)
+    - train algorithms with optimal hyperparameters (determined separately)
+    - evaluate algorithm performance and save results to file
 
-@author: alraune
+Author: A. Zech
 """
 
 # import numpy as np
 import pandas as pd
 import PSD_2K_ML
 
+### ===========================================================================
+### Key words to specify modus of script:
+### ===========================================================================
 
-soil_type = 'por'# 'clay' #'silt' #'sand' ### ''full' #'topall' #
-feature ='dX' #'PSD' # 'dX_por' #
-target = 'Kf' #'por' # #
+soil_type = 'topall' #'por'# 'clay' #'silt' #'sand' ### ''full' #
+feature ='PSD' # 'dX_por' #'dX' #
+target = 'Kf' # 'por' # 
 
 algorithms = ['DT','RF','XG','LR','SVR','ANN']
 sets = ['training_set','testing_set','full_set']
@@ -31,11 +40,10 @@ print('#################################\n')
 ### Set file pathes and names
 ### ===========================================================================
 
-# file_data = "../data/data_PSD_Kf_por.csv"
-file_data = "../data/data_PSD_Kf_por_props.csv"
-file_AI_performance_r2 = "../results/Performance_{}_{}_{}_r2.csv".format(feature,target,soil_type)
-file_AI_performance_mse = "../results/Performance_{}_{}_{}_mse.csv".format(feature,target,soil_type)
-
+file_data = "../data/data_PSD_Kf_por_props.csv" # path to input data
+### pathes + file names to store performance measures to
+file_AI_performance_r2 = "../results/ML_performance/Performance_{}_{}_{}_r2.csv".format(feature,target,soil_type)
+file_AI_performance_mse = "../results/ML_performance/Performance_{}_{}_{}_mse.csv".format(feature,target,soil_type)
 
 ### ===========================================================================
 ### Initialize Analysis

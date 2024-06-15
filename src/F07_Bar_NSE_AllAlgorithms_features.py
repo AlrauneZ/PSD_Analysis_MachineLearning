@@ -1,24 +1,52 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar  5 15:36:04 2024
+Script reproducing Figure 7 of the manuscripts containing bar-plots comparing
+algorithm performances of all 6 ML methods for different feature/target variable
+combinations for the data(sub)set "Top-por" (containing also porosity measurement)
+Evaluation measures NSE/R2 is taken for performance on all samples 
+(i.e. test data + training data)
 
-@author: alraune
-"""
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Mar  1 09:43:15 2024
-
-@author: alraune
+Author: A. Zech
 """
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-
 plt.close('all')
+
+### ===========================================================================
+### Key words to specify modus of script:
+### ===========================================================================
+
+algorithms = ['DT','RF','XG','LR','SVR','ANN']
+data_set = 'full_set'
+# verbose = True #False #
+
+print('\n###############################################')
+print(' Visualization of Training and Test Performance')
+print('#################################################\n')
+
+### ===========================================================================
+### Set file pathes and names
+### ===========================================================================
+
+file_AI_performance_r2 = "../results/ML_performance/Performance_{}_{}_{}_r2.csv"#.format(feature,target,soil_type)
+fig_results = '../results/Figures_paper/Fig07_Bar_NSE_features'
+
+### ===========================================================================
+### Plot and setting specifications 
+### ===========================================================================
+textsize = 8 #  12 #
+
+### Define a color dictionary for the bar charts
+color_dict = {'DT': 'tab:brown', 
+              'RF': 'tab:green', 
+              'XG': 'tab:blue', 
+              'LR': 'tab:purple', 
+              'SVR': 'tab:orange',
+              'ANN': 'tab:red'
+              }
 
 sets = dict(
     # s1 = dict(
@@ -47,25 +75,9 @@ sets = dict(
         ),
     )
 
-
-algorithms = ['DT','RF','XG','LR','SVR','ANN']
-data_set = 'full_set'
-# verbose = True #False #
-
-print('\n###############################################')
-print(' Visualization of Training and Test Performance')
-print('#################################################\n')
-
 ### ===========================================================================
-### Set file pathes and names
+### Read in data
 ### ===========================================================================
-
-file_AI_performance_r2 = "../results/Performance_{}_{}_{}_r2.csv"#.format(feature,target,soil_type)
-fig_results = '../results/Fig07_Bar_NSE_features'
-
-# =============================================================================
-# Read in data
-# =============================================================================
 
 data  = []
 title_text = []
@@ -73,24 +85,10 @@ for i in sets.keys():
     results_r2 = pd.read_csv(file_AI_performance_r2.format(sets[i]['feature'],sets[i]['target'],sets[i]['soil_type']),index_col=0)
     data.append(results_r2)
     title_text.append(sets[i]['text'])
-    # title_text.append(r"{} $\rightarrow$ {}  ({})".format(sets[i]['feature'],sets[i]['target'],sets[i]['soil_type']))
-# # =============================================================================
-# # Plot specifications 
-# # =============================================================================
-textsize = 8 #  12 #
-# # textsize = 8
 
-### Define a color dictionary for the bar charts
-color_dict = {'DT': 'tab:brown', 
-              'RF': 'tab:green', 
-              'XG': 'tab:blue', 
-              'LR': 'tab:purple', 
-              'SVR': 'tab:orange',
-              'ANN': 'tab:red'
-              }
-
-
-# fig, ax = plt.subplots(figsize=(3.25, 2.25),ncols=len(data_sets)) # for presentations/poster
+### ===========================================================================
+### Create Plot 
+### ===========================================================================
 fig, ax = plt.subplots(figsize=(7.5, 2),ncols=len(data), sharey = True)
 
 for j,results_r2 in enumerate(data):
@@ -110,16 +108,9 @@ for j,results_r2 in enumerate(data):
     
     
     ax[j].set_ylim([0,1.08])
-    # ax[j].set_ylim([-0.2,1.1])
-
-    # ax[j].set_ylim([0,1])
-    # ax[j].grid(True)
     ax[j].tick_params(axis="both",which="major",labelsize=textsize)
     ax[j].set_title(title_text[j],fontsize=textsize)
-    # ax[j].set_title("{}".format(data_set),fontsize=textsize)
-
+ 
 ax[0].set_ylabel(r"$NSE$",fontsize=textsize)
-# ax[0].set_ylabel(r"$R^2$",fontsize=textsize)
 plt.tight_layout()
-# plt.savefig(fig_results+'.png',dpi=300)
-fig.savefig(fig_results+'.pdf')
+fig.savefig(fig_results+'2.pdf')

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Mar 22 10:28:14 2024
+Script reproducing Figure of histogram of measured Kf values for the 
+Top-integraal data set and subsets: Top-all, Top-sand, Top-silt, Top-Clay 
 
-@author: alraune
+Author: A. Zech
 """
 
 import PSD_Analysis
@@ -11,38 +12,32 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.close('all')
 
-### ===========================================================================
-### Set file pathes and names
-### ===========================================================================
 
-# file_data = "../data/data_PSD_Kf_por.csv"
-file_data = "../data/data_PSD_Kf_por_props.csv"
-
+### ===========================================================================
+### Key words to specify modus of script:
+### ===========================================================================
 soil_types = ['all','silt','sand','clay']
+
+### ===========================================================================
+### Set file pathes and names & plot specifications
+### ===========================================================================
+
+file_data = "../data/data_PSD_Kf_por_props.csv"
+fig_results = '../results/Figures_SI/SI_Fig_Histogram_Kf'
+
 colors = ['C0','C3','goldenrod','C2']
-
-# soil_types = ['all','silt','sand','clay']
-# colors = ['goldenrod','C2','C0','C3']
-
-# soil_types = ['all','sand','silt','clay']
-# colors = ['goldenrod','C0','C2','C3']
+textsize = 8
 
 # =============================================================================
 # Load Data and perform data analysis
 # =============================================================================
 
-### initiate analysis
 Analysis = PSD_Analysis.PSD_Analysis() 
-
-### read in data through in-class routine
 data = Analysis.read_data(file_data)
 
-
-# =============================================================================
-### plot specifications
-
-plt.close('all')
-textsize = 8
+### ===========================================================================
+### Prepare plot
+### ===========================================================================
 
 fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(7.5, 4))#, sharey = True,sharex = True)##, layout='constrained')
 axs = axs.ravel()
@@ -50,11 +45,9 @@ axs = axs.ravel()
 kmin = np.min(Analysis.data['logK'])
 kmax = np.max(Analysis.data['logK'])
 bins = np.linspace(kmin, kmax,40)
-# print(kmin,kmax)
 
-for i in range(0,4):
-# for soil_type in ['sand','silt','clay']:
-   
+for i in range(0,len(soil_types)):
+  
     if i ==0:
         data_filtered  = Analysis.data
     else:
@@ -62,15 +55,12 @@ for i in range(0,4):
                                 soil_type = soil_types[i],
                                 inplace = False)                
 
-
     hist = axs[i].hist(data_filtered['logK'],density = True, bins = bins,rwidth=0.85,color=colors[i])#,zorder = 3)
 
     if i>=2:
         axs[i].set_xlabel("$\log_{10}(K_f$ [m/d])",fontsize=textsize)
     if i in [0,2]:
         axs[i].set_ylabel("relative frequency",fontsize=textsize)
-    # # axs[i].set_title('{}'.format(algorithm),fontsize=textsize)
-    # axs[i].grid(True, zorder = 1)
     axs[i].tick_params(axis="both",which="major",labelsize=textsize)
     axs[i].set_xlim([kmin-0.05,kmax+0.05])
     axs[i].text(0.03,0.9,'Top-{}'.format(soil_types[i]),
@@ -78,5 +68,4 @@ for i in range(0,4):
             bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
             
 plt.tight_layout()
-# # plt.savefig('../results/SI_Fig_Histogram_Kf.png',dpi=300)
-plt.savefig('../results/SI_Fig_Histogram_Kf.pdf')
+plt.savefig(fig_results+'.pdf')
