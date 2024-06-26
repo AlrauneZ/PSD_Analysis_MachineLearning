@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/302602074.svg)](https://zenodo.org/doi/10.5281/zenodo.4134626)
+[![DOI](https://zenodo.org/badge/687656693.svg)](https://zenodo.org/doi/10.5281/zenodo.12543936)
 
 # PSD Analysis using Machine Learning to identify hydraulic conductivity
 
