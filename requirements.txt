@@ -3,8 +3,8 @@ scipy
 pandas
 openpyxl
 matplotlib
-python=3.10 
-scikit-learn=1.0
-scikit-optimize=0.9
+python
+scikit-learn=1.5
+scikit-optimize=0.10
 xgboost
 

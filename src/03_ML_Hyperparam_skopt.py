@@ -26,7 +26,7 @@ plt.close('all')
 ### --------------------------------------------------------------------------
     
 ### name of algorithms to test (from listed options)
-algorithm = 'DT' #'RF' #'XG' # 'LR'   #'SVR'  #'ANN'  
+algorithm = 'LR'   #'DT' #'RF' #'XG' # 'SVR'  #'ANN'  
 
 ### type of data set (top-all, top-sand, top-silt, top-clay, top-por)
 soil_type = 'topall' #'sand' #'silt'# 'clay' # 'por' 
@@ -99,16 +99,16 @@ results = Analysis.hyperparameter_skopt(verbose = verbose,
                                         )
 
 fig2 = skopt.plots.plot_objective(results)
-if algorithm == 'LR':
-    fig2.tick_params(axis="both",which="major",labelsize=textsize-1) 
-    fig2.set_xlabel(fig2.get_xlabel(),fontsize = textsize)
-    fig2.set_ylabel(fig2.get_ylabel(),fontsize = textsize)
-else:
-    for i in range(fig2.shape[0]):
-        for j in range(fig2.shape[1]):
-            fig2[i,j].tick_params(axis="both",which="major",labelsize=textsize-1) 
-            fig2[i,j].set_xlabel(fig2[i,j].get_xlabel(),fontsize = textsize)
-            fig2[i,j].set_ylabel(fig2[i,j].get_ylabel(),fontsize = textsize)
+# if algorithm == 'LR':
+#     fig2.tick_params(axis="both",which="major",labelsize=textsize-1) 
+#     fig2.set_xlabel(fig2.get_xlabel(),fontsize = textsize)
+#     fig2.set_ylabel(fig2.get_ylabel(),fontsize = textsize)
+# else:
+#     for i in range(fig2.shape[0]):
+#         for j in range(fig2.shape[1]):
+#             fig2[i,j].tick_params(axis="both",which="major",labelsize=textsize-1) 
+#             fig2[i,j].set_xlabel(fig2[i,j].get_xlabel(),fontsize = textsize)
+#             fig2[i,j].set_ylabel(fig2[i,j].get_ylabel(),fontsize = textsize)
 # plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.3, hspace=0.3)
 plt.savefig(path_figure_skopt,dpi = 300, bbox_inches = 'tight')
 
