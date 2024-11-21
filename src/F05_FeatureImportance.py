@@ -79,14 +79,16 @@ Analysis.prediction(
 
 ### Feature Importance from permutation importances 
 importances_mean,importances_std = Analysis.feature_importance()
+# modify index name to remove "F" infront of each sieve size range
+importances_mean.index = [text[1:] for text in importances_mean.index.values]
 
 fig, axs = plt.subplots(nrows=1, ncols=1, figsize=(3.75, 2.8))##, layout='constrained')
 importances_mean.plot.bar(yerr= importances_std, color = colors, ax=axs)
 
-axs.set_ylabel("Mean accuracy decrease",fontsize=textsize)
-axs.set_xlabel("Features: Sieve size ranges in mm",fontsize=textsize)
+axs.set_ylabel("Feature importance mean",fontsize=textsize)
+axs.set_xlabel(r"Sieve size ranges in $\mu$m",fontsize=textsize)
 axs.tick_params(axis="y",which="major",labelsize=textsize)
 axs.tick_params(axis="x",which="major",labelsize=textsize-1)
 
 fig.tight_layout()
-fig.savefig(fig_results+'2.pdf')
+fig.savefig(fig_results+'.pdf')

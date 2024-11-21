@@ -44,8 +44,12 @@ except:
 
 DEF_settings = dict(
         sieve_diam = [.00001,0.0001,0.0002,0.0005,.001,.002,.004,.008,.016,.025,.035,.05,.063,.075,.088,.105,.125,.150,.177,.21,.25,.3,.354,.42,.5,.6,.707,.85,1.,1.190,1.41,1.68,2], # in mm
-        soil_class_names_sort = ['zs1','zs2','zs3','zs4','zk','kz3','kz2','kz1','lz1','lz3','ks4','ks3','ks2','ks1','p'],
+        soil_class_names_sort = ['zs1','zs2','zs3','zs4','zk','lz1','lz3','ks4','kz3','kz2','kz1','ks3','ks2','ks1','p'],
+#        soil_class_names_sort = ['zs1','zs2','zs3','zs4','zk','kz3','kz2','kz1','lz1','lz3','ks4','ks3','ks2','ks1','p'],
         )   
+# soil_class_names = [r'$Z_{s1}$', r'$Z_{s2}$', r'$Z_{s3}$', r'$Z_{s4}$', r'$Z_{k}$',
+#                     r'$L_{z1}$', r'$L_{z3}$', r'$K_{s4}$', 
+#                     r'$K_{z3}$', r'$K_{z2}$', r'$K_{z1}$', r'$K_{s3}$', r'$K_{s2}$', r'$K_{s1}$', r'$p$']
 
 class PSD_2K_ML(PSD_Analysis):
 
