@@ -7,7 +7,13 @@ extracting the information needed for this study
     - Kf + hydraulic conductivity measurments (including quality check) and 
             filtering out samples not matching quality check
 
-Writing condensed data to csv file (with standardised column naming) for further use in the study
+Writing condensed data to csv file (with standardised column naming) for further 
+use in the study
+
+NOTE!!!
+=======
+This script will not run for general users as the raw-data files are not
+provided in the repository.
 
 Author: A. Zech
 """

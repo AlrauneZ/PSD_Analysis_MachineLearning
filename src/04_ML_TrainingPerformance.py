@@ -20,7 +20,7 @@ import PSD_2K_ML
 ### Key words to specify modus of script:
 ### ===========================================================================
 
-algorithm ='XG' # 'DT' #LR' # 'ANN'  # 'RF' #'SVR' # ####  
+algorithm ='LR' #'XG' # 'DT' # 'ANN'  # 'RF' #'SVR' # ####  
 soil_type = 'topall'#'sand' #  'clay' #'silt' #'por' # 
 feature = 'PSD' #'dX_por' #'dX' #
 target = 'Kf' #'por' # #

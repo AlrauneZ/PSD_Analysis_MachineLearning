@@ -27,7 +27,7 @@ plt.close('all')
     
 ### list of algorithms to test
 # algorithms = ['DT','RF','XG','LR','SVR','ANN'] 
-algorithms = ['RF'] #['DT'] #'RF' #'XG' # 'LR'   #'SVR'  #'ANN'  - for running routine on a subset of the algorithms
+algorithms = ['LR'] #['DT'] #'RF' #'XG' # 'LR'   #'SVR'  #'ANN'  - for running routine on a subset of the algorithms
 
 ### type of data set (top-all, top-sand, top-silt, top-clay, top-por)
 soil_type = 'sand' ##'silt'# 'clay' # 'por' 'topall' #

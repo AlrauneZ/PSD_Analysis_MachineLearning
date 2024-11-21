@@ -14,8 +14,6 @@ import numpy as np
 import PSD_Analysis
 # import pandas as pd
 
-write_to_file = True #False # 
-
 print('###########################\n   Input data Analysis \n ###########################')
 
 # =============================================================================
@@ -32,11 +30,6 @@ Analysis = PSD_Analysis.PSD_Analysis()
 
 ### read in data through in-class routine
 Analysis.read_data(file_data)
-
-### read in data here and set psd and sieve-diameter values separately:
-# sieve_diam = [.00001,0.0001,0.0002,0.0005,.001,.002,.004,.008,.016,.025,.035,.05,.063,.075,.088,.105,.125,.150,.177,.21,.25,.3,.354,.42,.5,.6,.707,.85,1.,1.190,1.41,1.68,2]
-# data = pd.read_csv(file_application_data)
-# Analysis.set_data(data,sieve_diam)
 
 ### perform data analysis on psd
 Analysis.calc_psd_diameters()
