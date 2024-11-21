@@ -35,7 +35,7 @@ print('#################################################\n')
 ### ===========================================================================
 
 file_AI_performance_r2 = "../results/ML_performance/Performance_{}_{}_{}_r2.csv".format(feature,target,soil_type)
-fig_results = '../results/Figures_paper/Fig01_Bar_NSE_{}_{}_{}2'.format(feature,target,soil_type)
+fig_results = '../results/Figures_paper/Fig01_Bar_NSE_{}_{}_{}'.format(feature,target,soil_type)
 
 textsize = 8 #  12 #
 ### Define a color dictionary for the bar charts
@@ -72,9 +72,9 @@ for j,data_set in enumerate(data_sets):
     ax[j].tick_params(axis="both",which="major",labelsize=textsize)
     ax[j].set_title("{}".format(titles[j]),fontsize=textsize)
 
-ax[0].text(-0.05,1.1,'{}'.format(soil_type),
-            fontsize=textsize, transform=ax[0].transAxes,
-            bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
+# ax[0].text(-0.05,1.1,'{}'.format(soil_type),
+#             fontsize=textsize, transform=ax[0].transAxes,
+#             bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
 
 ax[0].set_ylabel(r"$NSE$",fontsize=textsize)
 plt.tight_layout()

@@ -125,18 +125,22 @@ axs[i].text(0.1,0.9,'NSE = {:.2f}'.format(r2_Barr_measured),
             fontsize=textsize, transform=axs[i].transAxes,
             bbox = dict(boxstyle='round', facecolor='white'))
 axs[i].text(-0.1,-0.1,'(a)', fontsize=textsize, transform=axs[i].transAxes)
-axs[i].text(-0.05,1.05,'Top - All',
-            fontsize=textsize+1, transform=axs[0].transAxes,
-            bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
+# axs[i].text(-0.05,1.05,'Top - All',
+#             fontsize=textsize+1, transform=axs[0].transAxes,
+#             bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
 
 fig.subplots_adjust(right=.78)
+soil_class_names = [r'$Z_{s1}$', r'$Z_{s2}$', r'$Z_{s3}$', r'$Z_{s4}$', r'$Z_{k}$',
+                    r'$L_{z1}$', r'$L_{z3}$', r'$K_{s4}$', 
+                    r'$K_{z3}$', r'$K_{z2}$', r'$K_{z1}$', r'$K_{s3}$', r'$K_{s2}$', r'$K_{s1}$',
+                    'peat']
 fig.legend(handles=scatter.legend_elements(num=len(soil_class_names))[0], 
             labels=list(soil_class_names), 
             loc='center right', 
             ncol=1, 
             prop={'size': textsize},#,fontsize=textsize,
             bbox_transform=fig.transFigure,
-            title = "litho \nclasses",
+            title = "Litho- \nclasses",
             )
 
-fig.savefig(fig_results+'2.pdf')
+fig.savefig(fig_results+'.pdf')
