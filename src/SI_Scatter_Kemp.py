@@ -32,6 +32,7 @@ figure_text = ['a','b','c','d']
 ### Load Data and extract information
 ### =============================================================================
 
+
 data = pd.read_csv(file_data_Kemp,index_col = 0)
 
 ### column names provide empirical methods
@@ -42,11 +43,16 @@ Kemp_values = pd.DataFrame(data, columns=Kemp_cols)
 soil_class_sample = data.soil_class.astype('category').cat.codes
 soil_class_names = np.unique(data.soil_class)
 
-soil_class_names_sort = ['zs1','zs2','zs3','zs4','zk','kz3','kz2','kz1','lz1','lz3','ks4', 'ks3','ks2', 'ks1','p' ]
-map_list = [soil_class_names_sort.index(o) for o in soil_class_names]
-
+soil_class_sort = ['zs1','zs2','zs3','zs4','zk',
+                   'lz1','lz3','ks4',
+                   'kz3','kz2','kz1', 'ks3','ks2', 'ks1','p' ]
+map_list = [soil_class_sort.index(o) for o in soil_class_names]
 soil_class_sample = [map_list[i] for i in soil_class_sample]#objects = [object_map[id] for id in ids]
-soil_class_names = soil_class_names_sort
+
+#soil_class_names = soil_class_sort
+soil_class_names = [r'$Z_{s1}$', r'$Z_{s2}$', r'$Z_{s3}$', r'$Z_{s4}$', r'$Z_{k}$',
+                    r'$L_{z1}$', r'$L_{z3}$', r'$K_{s4}$', 
+                    r'$K_{z3}$', r'$K_{z2}$', r'$K_{z1}$', r'$K_{s3}$', r'$K_{s2}$', r'$K_{s1}$',r'peat']
 
 k_min,k_max = np.min(np.log10(data['Kf'])),np.max(np.log10(data['Kf']))
 
@@ -89,6 +95,7 @@ for i in range(4):
                 fontsize=textsize, transform=axs[i].transAxes,
                 bbox = dict(boxstyle='round', facecolor='white'))
 
+
 fig.subplots_adjust(bottom=.12)
 fig.legend(handles=scatter.legend_elements(num=len(soil_class_names))[0], 
             labels=list(soil_class_names), 
@@ -98,5 +105,5 @@ fig.legend(handles=scatter.legend_elements(num=len(soil_class_names))[0],
             bbox_transform=fig.transFigure,
             )
 
-plt.savefig(file_fig+'.pdf')
+#plt.savefig(file_fig+'.pdf')
 
