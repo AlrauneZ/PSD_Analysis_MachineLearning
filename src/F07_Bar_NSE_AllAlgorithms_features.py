@@ -113,4 +113,5 @@ for j,results_r2 in enumerate(data):
  
 ax[0].set_ylabel(r"$NSE$",fontsize=textsize)
 plt.tight_layout()
-fig.savefig(fig_results+'2.pdf')
+
+#fig.savefig(fig_results+'2.pdf')

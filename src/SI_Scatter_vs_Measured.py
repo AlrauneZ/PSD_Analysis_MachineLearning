@@ -19,9 +19,9 @@ plt.close('all')
 ### ===========================================================================
 
 algs = ["DT", "RF", "XG", "LR", "SVR", "ANN"]
-soil_type = 'por' #'sand' #'silt'#'clay' # 
-feature ='dX_por'# 'PSD' # 
-target =  'Kf' 
+soil_type = 'clay' # 'por' #'sand' #'silt'#
+feature = 'PSD' # 'dX_por'#
+target =  'Kf'# 
 verbose = True
 
 ### ===========================================================================
@@ -41,10 +41,10 @@ markersize = 2
 figure_text = ['a','b','c','d','e','f']
 
 lithoclasses = dict(
-    por = ['zs1', 'zs2', 'zs3', 'zs4', 'zk'],
-    sand = ['zs1', 'zs2', 'zs3', 'zs4', 'zk'],
-    silt = ['lz1','lz3', 'ks4'],
-    clay =['kz3','kz2','kz1', 'ks3','ks2', 'ks1','p'],
+    por  = [r'$Z_{s1}$', r'$Z_{s2}$', r'$Z_{s3}$', r'$Z_{s4}$', r'$Z_{k}$'],
+    sand = [r'$Z_{s1}$', r'$Z_{s2}$', r'$Z_{s3}$', r'$Z_{s4}$', r'$Z_{k}$'],
+    silt = [r'$L_{z1}$', r'$L_{z3}$', r'$K_{s4}$'], 
+    clay = [r'$K_{z3}$', r'$K_{z2}$', r'$K_{z1}$', r'$K_{s3}$', r'$K_{s2}$', r'$K_{s1}$', r'peat'],
     )
 
 ### ===========================================================================
@@ -126,4 +126,4 @@ fig.legend(handles=scatter.legend_elements()[0],
             bbox_transform=fig.transFigure,
             )
 
-plt.savefig(file_fig+'.pdf')
+#plt.savefig(file_fig+'.pdf')

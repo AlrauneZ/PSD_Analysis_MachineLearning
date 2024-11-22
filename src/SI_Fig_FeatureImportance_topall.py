@@ -31,7 +31,7 @@ verbose = True #False #
 ### ===========================================================================
   
 file_data = "../data/data_PSD_Kf_por_props.csv"
-file_fig = '../results/Figures_SI/SI_Fig_FeatureImportance_topall2'
+file_fig = '../results/Figures_SI/SI_Fig_FeatureImportance_topall'
 textsize = 8
 figure_text = ['a','b','c','d','e','f']
 colors = ['C0','C1','C2','C3','C4','C5'] #mcolors.TABLEAU_COLORS #['lightblue', 'blue', 'purple', 'red', 'black']
@@ -70,10 +70,12 @@ for i,algorithm in enumerate(algs):
     Analysis.prediction(x_pred = 'full_set',verbose = verbose)
     
     importances_mean,importances_std = Analysis.feature_importance()
+    # modify index name to remove "F" infront of each sieve size range
+    importances_mean.index = [text[1:] for text in importances_mean.index.values]
     importances_mean.plot.bar(yerr= importances_std, color = colors, ax=axs[i])
 
-    axs[i].set_ylabel("Mean accuracy decrease",fontsize=textsize)
-    axs[i].set_xlabel("Features: Sieve size ranges in mm",fontsize=textsize)
+    axs[i].set_ylabel("Feature importance mean",fontsize=textsize)
+    axs[i].set_xlabel("Sieve size ranges in $\mu$m",fontsize=textsize)
     axs[i].tick_params(axis="y",which="major",labelsize=textsize)
     axs[i].tick_params(axis="x",which="major",labelsize=textsize-1)
     axs[i].text(0.05,0.9,'({}) {}'.format(figure_text[i],algorithm),
@@ -81,4 +83,4 @@ for i,algorithm in enumerate(algs):
                 bbox = dict(boxstyle='round', facecolor='white'))
 
 plt.tight_layout()
-plt.savefig(file_fig+'.pdf')
+# plt.savefig(file_fig+'.pdf')

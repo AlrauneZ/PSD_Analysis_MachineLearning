@@ -10,11 +10,8 @@ PSD_2K_ML which is based on the routine "permutation_importance" from sklearn.
 Author: A. Zech
 """
 
-# import numpy as np
-# import pandas as pd
 import matplotlib.pyplot as plt
 import PSD_2K_ML
-plt.close('all')
 
 ### ===========================================================================
 ### Key words to specify modus of script:
@@ -79,7 +76,7 @@ Analysis.prediction(
 
 ### Feature Importance from permutation importances 
 importances_mean,importances_std = Analysis.feature_importance()
-# modify index name to remove "F" infront of each sieve size range
+### modify index name to remove "F" infront of each sieve size range
 importances_mean.index = [text[1:] for text in importances_mean.index.values]
 
 fig, axs = plt.subplots(nrows=1, ncols=1, figsize=(3.75, 2.8))##, layout='constrained')
@@ -91,4 +88,4 @@ axs.tick_params(axis="y",which="major",labelsize=textsize)
 axs.tick_params(axis="x",which="major",labelsize=textsize-1)
 
 fig.tight_layout()
-fig.savefig(fig_results+'.pdf')
+# fig.savefig(fig_results+'.pdf')

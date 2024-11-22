@@ -70,11 +70,13 @@ for i,soil_type in enumerate(soil_types):
     Analysis.prediction(x_pred = 'full_set',verbose = verbose)
     
     importances_mean,importances_std = Analysis.feature_importance()
+    # modify index name to remove "F" infront of each sieve size range
+    importances_mean.index = [text[1:] for text in importances_mean.index.values]
     importances_mean.plot.bar(yerr= importances_std, color = colors, ax=axs[i])
 
     if i in [0,2]:
-        axs[i].set_ylabel("Mean accuracy decrease",fontsize=textsize)
-    axs[i].set_xlabel("Features: Sieve size ranges in mm",fontsize=textsize)
+        axs[i].set_ylabel("Feature importance mean",fontsize=textsize)
+    axs[i].set_xlabel("Sieve size ranges in $\mu$m",fontsize=textsize)
     axs[i].tick_params(axis="y",which="major",labelsize=textsize)
     axs[i].tick_params(axis="x",which="major",labelsize=textsize-1)
 
@@ -83,4 +85,4 @@ for i,soil_type in enumerate(soil_types):
             bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
 
 plt.tight_layout()
-plt.savefig(file_fig+'.pdf')
+plt.savefig(file_fig+'_new.pdf')

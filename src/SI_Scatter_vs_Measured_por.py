@@ -12,7 +12,6 @@ Author: A. Zech
 import PSD_2K_ML
 import numpy as np
 import matplotlib.pyplot as plt
-plt.close('all')
 
 ### ===========================================================================
 ### Set file pathes and Plot specifications 
@@ -102,4 +101,4 @@ axs[0].text(-0.05,1.1,'{} --> {}'.format(feature,target),
             bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
 
 plt.tight_layout()
-plt.savefig(file_fig+'2.pdf')
+plt.savefig(file_fig+'.pdf')
