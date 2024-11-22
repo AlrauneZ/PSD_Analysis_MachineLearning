@@ -2,7 +2,7 @@
 
 # PSD Analysis using Machine Learning to identify hydraulic conductivity
 
-This repository accompanies the manuscript "Predicting Saturated Hydraulic Conductivity from Particle Size Distributions using Machine Learning" (submitted/under revision). 
+This repository accompanies the manuscript "Predicting Saturated Hydraulic Conductivity from Particle Size Distributions using Machine Learning" (accepted in Stochastic Environmental Research and Risk Assessment). 
 
 The repository provides routines to perform particle size distribution (PSD) analysis, particularly workflows to estimate hydraulic conductivity with six Machine Learning (ML) algorithms:
 - Decision Tree (DT)
@@ -20,7 +20,11 @@ The algorithms are tested on soil sample data from the "TopIntegraal" project pr
 
 - `README.md` - description of the project
 - `LICENSE` - the default license is MIT
+- `requirements.txt` - requirements for [pip](https://pip.pypa.io/en/stable/user_guide/#requirements-files) to install all needed packages (see below)
 - `data/` - does not contain the TopIntegral data (PSD) yet (due to license issues):
+    + `data_PSD_Kf_por.csv`  - measured PSD data and measured hydraulic conductivity (Kf) values extracted from the TopIntegral data set, rows contain the 4593 samples, columns contains sieve size fractions in micrometer (column header starting with F), measured Kf values (from permeameter), log-transformed Kf, porosity measurements (for those sample where available) and the specification of the lithoclass (from TopIntegral)
+    + `data_PSD_Kf_por_props.csv` - same as `data_PSD_Kf_por.csv` plus two columns on soil classes and main lithology (re-)determined from the PSD
+    + `data_PSD_Kf_por_props_Kemp.csv` - same as `data_PSD_Kf_por_props.csv` plus five columns on estimates of hydraulic conductivity with empirical methods (column headers specify method type)
 - `results/` - results of processed data (algorithm performance) and plots used in publication:
     + `Kemp_all.csv`  - estimated Kf values of all samples for 15 empirical methods, inlcuding specification of applicability
     - `Data_analysis/` - results of analysis of PSD for samples:
@@ -114,8 +118,15 @@ The algorithms are tested on soil sample data from the "TopIntegraal" project pr
  
 ## Python environment
 
-To make the example reproducible, we provide the following files:
-- `requirements.txt` - requirements for [pip](https://pip.pypa.io/en/stable/user_guide/#requirements-files) to install all needed packages
+To locally run the scripts, clone the repository and (optionally) create a virtual environment. You can do that by running these commands in a terminl:
+```sh
+cd path/to/project_folder/PSD_Analysis_MachineLearning 
+python3 -m venv venv
+source venv/bin/activate
+python3 -m pip install -r requirements.txt
+```
+(to activate the environment on Windows, use the command `venv\Scripts\activate`).
+
 
 ## Contact
 
