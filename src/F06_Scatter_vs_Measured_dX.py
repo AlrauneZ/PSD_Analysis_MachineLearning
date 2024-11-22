@@ -12,7 +12,6 @@ import PSD_2K_ML
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
-plt.close('all')
 
 ### ===========================================================================
 ### Key words to specify modus of script:
@@ -114,9 +113,6 @@ for i,algorithm in enumerate(algs):
                 fontsize=textsize, transform=axs[i].transAxes,
                 bbox = dict(boxstyle='round', facecolor='white'))
 
-# axs[0].text(-0.1,1.1,'Feature variables: $d_{10}$, $d_{50}$, $d_{60}$',
-#             fontsize=textsize+1, transform=axs[0].transAxes,
-#             bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
 soil_class_names = [r'$Z_{s1}$', r'$Z_{s2}$', r'$Z_{s3}$', r'$Z_{s4}$', r'$Z_{k}$',
                     r'$L_{z1}$', r'$L_{z3}$', r'$K_{s4}$', 
                     r'$K_{z3}$', r'$K_{z2}$', r'$K_{z1}$', r'$K_{s3}$', r'$K_{s2}$', r'$K_{s1}$',
@@ -127,11 +123,8 @@ fig.legend(handles=scatter.legend_elements(num=len(soil_class_names))[0],
             labels=list(soil_class_names), 
             loc='lower center', 
             ncol=8, 
-            prop={'size': textsize},#,fontsize=textsize,
+            prop={'size': textsize},
             bbox_transform=fig.transFigure,
-#            title = "lithoclasses",
             )
 
-### plt.tight_layout()
-# plt.savefig(file_fig+'.png',dpi = 300)
 plt.savefig(file_fig+'.pdf')

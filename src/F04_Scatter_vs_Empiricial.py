@@ -13,7 +13,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import PSD_2K_ML
 from sklearn.metrics import r2_score
-plt.close('all')
 
 ### ===========================================================================
 ### Key words to specify modus of script:
@@ -143,4 +142,4 @@ fig.legend(handles=scatter.legend_elements(num=len(soil_class_names))[0],
             title = "Litho- \nclasses",
             )
 
-fig.savefig(fig_results+'.pdf')
+# fig.savefig(fig_results+'.pdf')

@@ -12,7 +12,6 @@ Author: A. Zech
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-plt.close('all')
 
 ### ===========================================================================
 ### Key words to specify modus of script:
@@ -77,5 +76,6 @@ for j,data_set in enumerate(data_sets):
 #             bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
 
 ax[0].set_ylabel(r"$NSE$",fontsize=textsize)
+
 plt.tight_layout()
-fig.savefig(fig_results+'.pdf')
+#fig.savefig(fig_results+'.pdf')

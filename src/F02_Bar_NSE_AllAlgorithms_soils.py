@@ -14,7 +14,6 @@ Author: A. Zech
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-plt.close('all')
 
 ### ===========================================================================
 ### Key words to specify modus of script:
@@ -84,4 +83,5 @@ for j,results_r2 in enumerate(data):
 
 ax[0].set_ylabel(r"$NSE$",fontsize=textsize)
 plt.tight_layout()
-fig.savefig(fig_results+'.pdf')
+
+#fig.savefig(fig_results+'.pdf')

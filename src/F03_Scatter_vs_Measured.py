@@ -101,9 +101,6 @@ for i,algorithm in enumerate(algs):
                 fontsize=textsize, transform=axs[i].transAxes,
                 bbox = dict(boxstyle='round', facecolor='white'))
 
-# axs[0].text(-0.05,1.1,'Top - All',
-#             fontsize=textsize+1, transform=axs[0].transAxes,
-#             bbox = dict(boxstyle='round', facecolor='antiquewhite', alpha=0.5))
 soil_class_names = [r'$Z_{s1}$', r'$Z_{s2}$', r'$Z_{s3}$', r'$Z_{s4}$', r'$Z_{k}$',
                     r'$L_{z1}$', r'$L_{z3}$', r'$K_{s4}$', 
                     r'$K_{z3}$', r'$K_{z2}$', r'$K_{z1}$', r'$K_{s3}$', r'$K_{s2}$', r'$K_{s1}$',
@@ -118,5 +115,4 @@ fig.legend(handles=scatter.legend_elements(num=len(soil_class_names))[0],
             bbox_transform=fig.transFigure,
             )
 
-### plt.tight_layout()
-plt.savefig(file_fig+'.pdf')
+#plt.savefig(file_fig+'.pdf')

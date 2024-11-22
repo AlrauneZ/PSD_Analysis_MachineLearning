@@ -8,10 +8,8 @@ to measured Kf for the standard feature/target variable combination.
 Author: A. Zech
 """
 
-
 import PSD_2K_ML
 import matplotlib.pyplot as plt
-plt.close('all')
 
 ### ===========================================================================
 ### Key words to specify modus of script:
@@ -98,4 +96,5 @@ fig.legend(handles=scatter.legend_elements(num=len(soil_class_names))[0],
             )
 
 plt.tight_layout()
-plt.savefig(file_fig+'4.pdf')
+
+#plt.savefig(file_fig+'.pdf')

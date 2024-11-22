@@ -12,7 +12,6 @@ Author: A. Zech
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-plt.close('all')
 
 ### ===========================================================================
 ### Key words to specify modus of script:
@@ -68,5 +67,6 @@ plt.yticks([0,0.2,0.4,0.6,0.8,1])
 plt.ylabel(r"$R^2$",fontsize=textsize)
 plt.tick_params(axis="both",which="major",labelsize=textsize)
 plt.title("Performance for {}".format(data_set),fontsize=textsize)
+
 plt.tight_layout()
-plt.savefig(fig_results+'.pdf')
+#plt.savefig(fig_results+'.pdf')
