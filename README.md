@@ -2,7 +2,7 @@
 
 # PSD Analysis using Machine Learning to identify hydraulic conductivity
 
-This repository accompanies the manuscript "Predicting Saturated Hydraulic Conductivity from Particle Size Distributions using Machine Learning" (accepted in Stochastic Environmental Research and Risk Assessment). 
+This repository accompanies the manuscript "Predicting saturated hydraulic conductivity from particle size distributions using machine learning" (de Rijk et al. 2024; https://doi.org/10.1007/s00477-024-02861-6). 
 
 The repository provides routines to perform particle size distribution (PSD) analysis, particularly workflows to estimate hydraulic conductivity with six Machine Learning (ML) algorithms:
 - Decision Tree (DT)
@@ -21,8 +21,8 @@ The algorithms are tested on soil sample data from the "TopIntegraal" project pr
 - `README.md` - description of the project
 - `LICENSE` - the default license is MIT
 - `requirements.txt` - requirements for [pip](https://pip.pypa.io/en/stable/user_guide/#requirements-files) to install all needed packages (see below)
-- `data/` - does not contain the TopIntegral data (PSD) yet (due to license issues):
-    + `data_PSD_Kf_por.csv`  - measured PSD data and measured hydraulic conductivity (Kf) values extracted from the TopIntegral data set, rows contain the 4593 samples, columns contains sieve size fractions in micrometer (column header starting with F), measured Kf values (from permeameter), log-transformed Kf, porosity measurements (for those sample where available) and the specification of the lithoclass (from TopIntegral)
+- `data/` - contains the data used in this project, extracted from the TopIntegral data set, including PSD data and hydraulic conductivity of 4593 samples and porosity measurements where available:
+    + `data_PSD_Kf_por.csv`  - measured quantities for the 4593 samples: each row contains one sample; columns are: sieve size fractions (=PSD data) in micrometer (column header starting with F), measured hydraulic conductivity from permeameter in m/d (column Kf), log-transformed hydraulic conductivity (column logK), porosity measurements (column porosity, for those sample where available) and the specification of the lithoclass from TopIntegraal (column litho_measured)
     + `data_PSD_Kf_por_props.csv` - same as `data_PSD_Kf_por.csv` plus two columns on soil classes and main lithology (re-)determined from the PSD
     + `data_PSD_Kf_por_props_Kemp.csv` - same as `data_PSD_Kf_por_props.csv` plus five columns on estimates of hydraulic conductivity with empirical methods (column headers specify method type)
 - `results/` - results of processed data (algorithm performance) and plots used in publication:
@@ -135,6 +135,6 @@ You can contact us via <a.zech@uu.nl>.
 
 ## License
 
-MIT © 2024
+MIT © 2025
 
 
