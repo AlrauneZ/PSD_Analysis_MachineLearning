@@ -876,6 +876,10 @@ class PSD_2K_ML(PSD_Analysis):
         # else:
         #     self.y_app = y_app
 
+        if self.scale_feature:
+            x_app = StandardScaler().fit_transform(x_app)
+
+
         y_app_pred = self.AI.predict(x_app)
         if isinstance(y_app,np.ndarray):
             if len(x_app)!=len(y_app):
